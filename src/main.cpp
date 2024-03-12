@@ -1,21 +1,31 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 
-int WINDOW_WIDTH = 800;
-int WINDOW_HEIGHT = 600;
+int WINDOW_WIDTH = 1500;
+int WINDOW_HEIGHT = 900;
 
 const char* WINDOW_TITLE = "helo tringl";
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window)
-{
+void processInput(GLFWwindow* window) {
     // input handling
+}
+
+void draw_ui() {
+	// Start the Dear ImGui frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow(); // Show demo window! :)
 }
 
 const char* vertexShaderSource = "#version 460 core\n"
@@ -32,8 +42,7 @@ const char* fragmentShaderSource = "#version 460 core\n"
 "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 "}\n\0";
 
-int main()
-{
+int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -59,6 +68,18 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
+
+
 
     // Set the viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -135,9 +156,10 @@ int main()
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Render loop
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         processInput(window);
+        draw_ui();
+        
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -148,13 +170,20 @@ int main()
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time 
 
+
+        // Draw Dear ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }

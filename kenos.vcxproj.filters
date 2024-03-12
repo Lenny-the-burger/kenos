@@ -74,5 +74,8 @@
     <ClInclude Include="src\imgui\imstb_truetype.h">
       <Filter>Source Files\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>Source Files\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
