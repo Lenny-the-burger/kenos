@@ -136,7 +136,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
     <None Include="packages.config" />
+    <None Include="README.md" />
     <None Include="src\shaders\vertex.glsl" />
     <None Include="src\shaders\fragment.glsl" />
   </ItemGroup>
