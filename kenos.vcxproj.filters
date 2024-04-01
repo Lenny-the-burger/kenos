@@ -16,9 +16,18 @@
     <Filter Include="Source Files\imgui">
       <UniqueIdentifier>{3ff93ce6-12c8-4cae-abfa-da3ef9071d5f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{09d00c67-6ab3-4cde-bfe0-ba2e46ef7a65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="src\shaders\vertex.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="src\shaders\fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">
@@ -48,6 +57,9 @@
     <ClCompile Include="src\imgui\imgui_widgets.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="src\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\imgui\imconfig.h">
@@ -76,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h">
       <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\shader.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
