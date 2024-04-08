@@ -22,6 +22,9 @@
     <Filter Include="Miscellaneous">
       <UniqueIdentifier>{81bd9bac-1589-4af1-ac32-48ed5ba90e54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{a5596b26-335e-4d63-bd88-6d68b1353b9c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -104,5 +107,10 @@
     <ClInclude Include="src\shader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\assets\wall.jpg">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -167,6 +167,9 @@
     <ClInclude Include="src\imgui\imstb_truetype.h" />
     <ClInclude Include="src\shader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\assets\wall.jpg" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="packages\glfw.3.4.0\build\native\glfw.targets" Condition="Exists('packages\glfw.3.4.0\build\native\glfw.targets')" />
