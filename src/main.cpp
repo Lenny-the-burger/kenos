@@ -1,6 +1,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -12,10 +16,29 @@
 int WINDOW_WIDTH = 1200;
 int WINDOW_HEIGHT = 900;
 
+float PI = 3.14159265359f;
+
+float aspect_ratio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
+bool should_update_aspect_ratio = true; // optimization to avoid updating aspect ratio every frame
+
 const char* WINDOW_TITLE = "helo tringl";
+
+#pragma region IMGUI_VALS
+static float angle = 0.0f;
+static float updown = 0.0f;
+static float angle_flat = 0.0f;
+static float FOV = 45.0f;
+
+#pragma endregion
+
+// Camera position
+static glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+static glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+    aspect_ratio = (float)width / (float)height;
+    should_update_aspect_ratio = true;
 }
 
 void processInput(GLFWwindow* window) {
@@ -27,7 +50,40 @@ void draw_ui() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+#ifdef IMGUI_DEBUG
 	ImGui::ShowDemoWindow(); // Show demo window! :)
+    return;
+
+#else
+
+    bool* p_open = NULL;
+    ImGuiWindowFlags window_flags = 0;
+
+    // Main body of the Demo window starts here.
+    if (!ImGui::Begin("Options", p_open, window_flags))
+    {
+        // Early out if the window is collapsed, as an optimization.
+        ImGui::End();
+        return;
+    }
+    ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+
+#pragma region UI
+    // UI starts here
+
+    ImGui::SliderAngle("slider angle", &angle);
+    ImGui::SliderAngle("slider flat angle", &angle_flat);
+    ImGui::SliderFloat("slider updown", &updown, -1.0f, 1.0f);
+    ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
+
+
+#pragma endregion
+    // End
+    ImGui::PopItemWidth();
+    ImGui::End();
+
+#endif
 }
 
 int main() {
@@ -79,9 +135,9 @@ int main() {
     // ------------------------------------------------------------------
     float vertices[] = {
         // positions         // colors
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+         0.5f, -0.5f + 0.211f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f + 0.211f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+         0.0f,  0.366f+0.211f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
     };
     unsigned int indices[] = {  // note that we start from 0!
         0, 1, 2,   // first triangle
@@ -138,6 +194,46 @@ int main() {
 
         // draw our first triangle
         ourShader.use();
+
+#pragma region RENDER
+
+        {   // Set the model matrix
+            glm::mat4 transform = glm::mat4(1.0f);
+            transform = glm::translate(transform, glm::vec3(0.0f, updown, 0.0f));
+
+            transform = glm::rotate(transform, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+            // rotate it to make it flat on the floor
+            transform = glm::rotate(transform, angle_flat, glm::vec3(1.0f, 0.0f, 0.0f));
+
+            unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "model");
+            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+        }
+
+        {   // Set the view matrix
+            glm::mat4 view = glm::mat4(1.0f);
+            view = glm::translate(view, -cameraPos);
+
+            unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        }
+
+        {   // Set the projection matrix
+            glm::mat4 projection = glm::mat4(1.0f);
+            projection = glm::perspective(glm::radians(FOV), aspect_ratio, 0.1f, 100.0f);
+
+            unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        }
+
+        // Check if aspect ratio has changed and update it
+        if (should_update_aspect_ratio) {
+			// This is handled by the projection matrix so won't be needed until i do
+            // optimize that since we set it every frame right now
+			should_update_aspect_ratio = false;
+		}
+
+#pragma endregion
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
