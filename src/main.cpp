@@ -5,6 +5,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <nlohmann/json.hpp>
+
+// for convenience
+using json = nlohmann::json;
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -25,15 +30,15 @@ const char* WINDOW_TITLE = "helo tringl";
 
 #pragma region IMGUI_VALS
 static float angle = 0.0f;
-static float updown = 0.0f;
-static float angle_flat = 0.0f;
+static float updown = -0.2f;
 static float FOV = 45.0f;
 
 #pragma endregion
 
 // Camera position
-static glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-static glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+static glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, -3.0f);
+static glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+static glm::vec3 camera_lookat = glm::vec3(0.0f, 0.0f, 4.0f);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -73,7 +78,6 @@ void draw_ui() {
     // UI starts here
 
     ImGui::SliderAngle("slider angle", &angle);
-    ImGui::SliderAngle("slider flat angle", &angle_flat);
     ImGui::SliderFloat("slider updown", &updown, -1.0f, 1.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
 
@@ -112,6 +116,8 @@ int main() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    glEnable(GL_DEPTH_TEST);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -190,7 +196,7 @@ int main() {
         draw_ui();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw our first triangle
         ourShader.use();
@@ -204,7 +210,7 @@ int main() {
             transform = glm::rotate(transform, angle, glm::vec3(0.0f, 1.0f, 0.0f));
 
             // rotate it to make it flat on the floor
-            transform = glm::rotate(transform, angle_flat, glm::vec3(1.0f, 0.0f, 0.0f));
+            transform = glm::rotate(transform, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
 
             unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "model");
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
@@ -212,7 +218,7 @@ int main() {
 
         {   // Set the view matrix
             glm::mat4 view = glm::mat4(1.0f);
-            view = glm::translate(view, -cameraPos);
+            view = glm::lookAt(camera_pos, camera_lookat, camera_up);
 
             unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
