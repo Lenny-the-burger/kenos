@@ -1,0 +1,100 @@
+{
+  "sceneName": "Cornell box",
+  "sceneDescription": "A Cornell box with a monke and a light",
+  "meshes": [ "assets/monke.obj", "assets/plane.obj"],
+  "materials": [
+    {
+      "name": "glossy",
+      "albedo": [ 255, 255, 255 ],
+      "emissiveIntensity": 0,
+      "roughness": 0
+    },
+    {
+      "name": "emissive",
+      "albedo": [ 255, 255, 255 ],
+      "emissiveIntensity": 10,
+      "roughness": 1
+    },
+    {
+      "name": "diffuseWhite",
+      "albedo": [ 255, 255, 255 ],
+      "emissiveIntensity": 0,
+      "roughness": 1
+    },
+    {
+      "name": "diffuseRed",
+      "albedo": [ 255, 0, 0 ],
+      "emissiveIntensity": 0,
+      "roughness": 1
+    },
+    {
+      "name": "diffuseGreen",
+      "albedo": [ 0, 255, 0 ],
+      "emissiveIntensity": 0,
+      "roughness": 1
+    }
+  ],
+  "objects": [
+    {
+      "name": "monke",
+      "mesh": "assets/monke.obj",
+      "material": "diffuseWhite",
+      "position": [ 0, 1, 0 ],
+      "rotation": [ 0, 0, 0 ],
+      "scale": [ 1, 1, 1 ]
+    },
+    {
+      "name": "floor",
+      "mesh": "assets/plane.obj",
+      "material": "diffuseWhite",
+      "position": [ 0, 0, 0 ],
+      "rotation": [ 3.1415, 0, 0 ],
+      "scale": [ 4, 4, 4 ]
+    },
+    {
+      "name": "ceiling",
+      "mesh": "assets/plane.obj",
+      "material": "diffuseWhite",
+      "position": [ 0, 4, 0 ],
+      "rotation": [ 0, 0, 0 ],
+      "scale": [ 4, 4, 4 ]
+    },
+    {
+      "name": "backboard",
+      "mesh": "assets/plane.obj",
+      "material": "diffuseWhite",
+      "position": [ 0, 2, 2 ],
+      "rotation": [ 1.5707, 0, 0 ],
+      "scale": [ 4, 4, 4 ]
+    },
+    {
+      "name": "leftWall",
+      "mesh": "assets/plane.obj",
+      "material": "diffuseRed",
+      "position": [ 2, 2, 0 ],
+      "rotation": [ 3.1415, 0, -1.5707 ],
+      "scale": [ 4, 4, 4 ]
+    },
+    {
+      "name": "rightWall",
+      "mesh": "assets/plane.obj",
+      "material": "diffuseGreen",
+      "position": [ -2, 2, 0 ],
+      "rotation": [ 3.1415, 0, 1.5707 ],
+      "scale": [ 4, 4, 4 ]
+    },
+    {
+      "name": "light",
+      "mesh": "assets/plane.obj",
+      "material": "emissive",
+      "position": [ 0, 3.9, 0 ],
+      "rotation": [ 3.1415, 0, 0 ],
+      "scale": [ 0.75, 0.75, 0.75 ]
+    }
+  ],
+  "camera": {
+    "position": [ 0, 2, -10 ],
+    "lookat": [ 0, 2, 0 ],
+    "fov": 90
+  }
+}
