@@ -140,18 +140,12 @@ int main() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-        // positions         // colors
-         0.5f, -0.5f + 0.211f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f + 0.211f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-         0.0f,  0.366f+0.211f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+         0.5f, -0.5f + 0.211f, 0.0f,   // bottom right
+        -0.5f, -0.5f + 0.211f, 0.0f,   // bottom left
+         0.0f,  0.366f+0.211f, 0.0f    // top 
     };
     unsigned int indices[] = {  // note that we start from 0!
         0, 1, 2,   // first triangle
-    };
-    float texCoords[] = {
-        0.0f, 0.0f,  // lower-left corner  
-        1.0f, 0.0f,  // lower-right corner
-        0.5f, 1.0f   // top-center corner
     };
 
     unsigned int VBO, VAO, EBO;
@@ -172,11 +166,8 @@ int main() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the 
     // vertex attribute's bound vertex buffer object so afterwards we can safely unbind
