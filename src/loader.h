@@ -39,14 +39,13 @@ struct Mesh {
 	}
 
 	~Mesh() {
-		delete[] vertices;
-		delete[] indices;
+		//delete[] vertices; this causes an exception idk why someone FIXME
+		//delete[] indices;
 	}
 };
 
 // No name because this is stored per primive
 struct Material {
-	std::string name;
 	float emissive_strength;
 	float color_r; // seperate color channels so we dont have to deal with arrays
 	float color_g;

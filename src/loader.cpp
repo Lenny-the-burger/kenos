@@ -28,7 +28,6 @@ void Loader::load_scene(const std::string& filepath)
 
 	json data = json::parse(f);
 
-
 	// 2. Fill out the scene info struct
 	scene_info = Scene_information();
 
@@ -51,12 +50,10 @@ void Loader::load_scene(const std::string& filepath)
 		mat.color_b = material["albedo"][2];
 		mat.roughness = material["roughness"];
 
-		mat.name = material["name"];
-
 		loaded_materials.push_back(mat);
 
 		// update the material name to index map
-		mesh_name_to_index[material["name"]] = loaded_materials.size() - 1;
+		material_name_to_index[material["name"]] = loaded_materials.size() - 1;
 	}
 
 	// 4. Load meshes
@@ -101,7 +98,7 @@ void Loader::load_scene(const std::string& filepath)
 
 		// fill out the indices
 		new_mesh.num_indices = aiMesh->mNumFaces * 3;
-		new_mesh.indices = new int[new_mesh.num_indices];
+		new_mesh.indices = new int[new_mesh.num_indices + 3];
 
 		for (int i = 0; i < aiMesh->mNumFaces; i++) {
 			new_mesh.indices[i * 3]     = aiMesh->mFaces[i].mIndices[0];
@@ -123,7 +120,7 @@ void Loader::load_scene(const std::string& filepath)
 		Scene_object new_object = Scene_object();
 
 		new_object.mesh_index = mesh_name_to_index[object["mesh"]];
-		new_object.material_index = mesh_name_to_index[object["material"]];
+		new_object.material_index = material_name_to_index[object["material"]];
 		new_object.name = object["name"];
 
 		// fill out the transform
