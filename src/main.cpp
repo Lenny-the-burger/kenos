@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <iostream>
+
 #include <nlohmann/json.hpp>
 
 // for convenience
@@ -19,7 +21,8 @@ using json = nlohmann::json;
 
 #include "shader.h"
 
-#include <iostream>
+#include "loader.h"
+
 
 int WINDOW_WIDTH = 1200;
 int WINDOW_HEIGHT = 900;
@@ -31,12 +34,15 @@ bool should_update_aspect_ratio = true; // optimization to avoid updating aspect
 
 const char* WINDOW_TITLE = "helo tringl";
 
+std::string SCENE_FILE = "assets/cornell_box.json";
+
 #pragma region IMGUI_VALS
-static float angle = 0.0f;
 static float updown = -0.2f;
 static float FOV = 45.0f;
 
 #pragma endregion
+
+Loader scene_loader = Loader();
 
 // Camera position
 static glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, -3.0f);
@@ -80,7 +86,6 @@ void draw_ui() {
 #pragma region UI
     // UI starts here
 
-    ImGui::SliderAngle("slider angle", &angle);
     ImGui::SliderFloat("slider updown", &updown, -1.0f, 1.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
 
@@ -133,6 +138,13 @@ int main() {
     ImGui_ImplOpenGL3_Init();
 
 
+    // Load the scene
+    scene_loader.load_scene(SCENE_FILE);
+
+    Scene_information scene_info = scene_loader.get_scene_info();
+    // set the fov
+    FOV = scene_info.camera_fov;
+
 
     // Set the viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -142,14 +154,23 @@ int main() {
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float vertices[] = {
-         0.5f, -0.5f + 0.211f, 0.0f,   // bottom right
-        -0.5f, -0.5f + 0.211f, 0.0f,   // bottom left
-         0.0f,  0.366f+0.211f, 0.0f    // top 
-    };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 2,   // first triangle
-    };
+    //float vertices[] = {
+    //     0.5f, -0.5f + 0.211f, 0.0f,   // bottom right
+    //    -0.5f, -0.5f + 0.211f, 0.0f,   // bottom left
+    //     0.0f,  0.366f+0.211f, 0.0f    // top 
+    //};
+    //unsigned int indices[] = {  // note that we start from 0!
+    //    0, 1, 2,   // first triangle
+    //};
+
+    int num_vertices = scene_loader.get_num_vertices();
+    int num_indices = scene_loader.get_num_indices();
+
+    float* vertices = new float[num_vertices];
+    int* indices = new int[num_indices];
+
+    vertices = scene_loader.get_vertices();
+    indices = scene_loader.get_indices();
 
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -162,11 +183,11 @@ int main() {
 
     // Bind VBO to GL_ARRAY_BUFFER
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * num_vertices, vertices, GL_STATIC_DRAW);
 
     // Copy our index array in a element buffer for OpenGL to use
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * num_indices, indices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -182,7 +203,7 @@ int main() {
     glBindVertexArray(0);
 
     // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
@@ -201,10 +222,8 @@ int main() {
             glm::mat4 transform = glm::mat4(1.0f);
             transform = glm::translate(transform, glm::vec3(0.0f, updown, 0.0f));
 
-            transform = glm::rotate(transform, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-
-            // rotate it to make it flat on the floor
-            transform = glm::rotate(transform, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+            // rotate around the y axis 180 because i messed up the model
+            transform = glm::rotate(transform, PI, glm::vec3(0.0f, 1.0f, 0.0f));
 
             unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "model");
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
@@ -236,7 +255,7 @@ int main() {
 #pragma endregion
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time 
 
 
