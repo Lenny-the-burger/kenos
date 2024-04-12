@@ -1,3 +1,6 @@
+// Windows must be included before glad
+#include <windows.h> // error message box
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -6,8 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <nlohmann/json.hpp>
-
-#include <winuser.h> // error message box
 
 // for convenience
 using json = nlohmann::json;

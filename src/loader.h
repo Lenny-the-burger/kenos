@@ -11,7 +11,7 @@
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
 
-#include <winuser.h>
+#include <windows.h>
 
 #include <fstream>
 #include <nlohmann/json.hpp>
