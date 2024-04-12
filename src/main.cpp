@@ -7,6 +7,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include <winuser.h> // error message box
+
 // for convenience
 using json = nlohmann::json;
 
