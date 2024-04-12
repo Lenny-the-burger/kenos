@@ -143,4 +143,63 @@ void Loader::load_scene(const std::string& filepath)
 	}
 
 	// 6. Contruct the monobuffer
+	// Loop over all the scene objects and add thew meshes to the vertex and index buffers
+	num_vertices = 0;
+	num_indices = 0;
+	num_materials = 0;
+
+	// Temporary vectors to store stuff, these are later converted to c arrays
+	vector<float> temp_vertices;
+	vector<int> temp_indices;
+	vector<Material> temp_materials;
+
+	for (Scene_object& object : scene_objects) {
+
+		// append all the vertices to the vertex buffer
+		for (int i = 0; i < loaded_meshes[object.mesh_index].num_vertices; i++) {
+			temp_vertices.push_back(loaded_meshes[object.mesh_index].vertices[i * 3    ]);
+			temp_vertices.push_back(loaded_meshes[object.mesh_index].vertices[i * 3 + 1]);
+			temp_vertices.push_back(loaded_meshes[object.mesh_index].vertices[i * 3 + 2]);
+		}
+
+		// Go through ech tri, add the vertex indices and create a per primitive material
+		// We could avoid storing stuff like material per primitive if we had some sort of
+		// "range hash map" that makes it easy to go from primid to object id, but i dont
+		// know of any better way than just storing a 1:1 look up table so it wont save that
+		// much mem anyway. Until there is a better way we do this boowomp
+
+		// Div the number by 3 because we want to iterate per triangle
+		for (int i = 0; i < loaded_meshes[object.mesh_index].num_indices / 3; i++) {
+			// When we add indeces, they should be offset by the previous number of vertices
+			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i * 3    ] + num_vertices);
+			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i * 3 + 1] + num_vertices);
+			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i * 3 + 2] + num_vertices);
+
+			// Add the material
+			temp_materials.push_back(loaded_materials[object.material_index]);
+		}
+
+		// These are updated after the object are processed as during the loop we assume these
+		// represent the numbers of completed work
+		num_indices   += temp_indices.size();
+		num_vertices  += temp_vertices.size();
+		num_materials += temp_materials.size();
+	}
+
+	// Convert the vectors to c arrays
+	all_vertices  = new float[temp_vertices.size()];
+	all_indices   = new int[temp_indices.size()];
+	all_materials = new Material[temp_materials.size()];
+
+	for (int i = 0; i < temp_vertices.size(); i++) {
+		all_vertices[i] = temp_vertices[i];
+	}
+
+	for (int i = 0; i < temp_indices.size(); i++) {
+		all_indices[i] = temp_indices[i];
+	}
+
+	for (int i = 0; i < temp_materials.size(); i++) {
+		all_materials[i] = temp_materials[i];
+	}
 }
