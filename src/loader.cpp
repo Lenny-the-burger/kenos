@@ -46,9 +46,9 @@ void Loader::load_scene(const std::string& filepath)
 	for (auto& material : data["materials"]) {
 		Material mat = Material();
 		mat.emissive_strength = material["emissiveIntensity"];
-		mat.color[0] = material["color"][0];
-		mat.color[1] = material["color"][1];
-		mat.color[2] = material["color"][2];
+		mat.color_r = material["albedo"][0];
+		mat.color_g = material["albedo"][1];
+		mat.color_b = material["albedo"][2];
 		mat.roughness = material["roughness"];
 
 		mat.name = material["name"];

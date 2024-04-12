@@ -44,10 +44,13 @@ struct Mesh {
 	}
 };
 
+// No name because this is stored per primive
 struct Material {
 	std::string name;
 	float emissive_strength;
-	float color[3];
+	float color_r; // seperate color channels so we dont have to deal with arrays
+	float color_g;
+	float color_b;
 	float roughness;
 };
 
