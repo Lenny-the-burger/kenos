@@ -130,9 +130,9 @@ void Loader::load_scene(const std::string& filepath)
 
 		new_object.transform = glm::mat4(1.0f);
 		new_object.transform = glm::scale(new_object.transform, scale);
-		new_object.transform = glm::rotate(new_object.transform, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-		new_object.transform = glm::rotate(new_object.transform, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-		new_object.transform = glm::rotate(new_object.transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+		//new_object.transform = glm::rotate(new_object.transform, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+		//new_object.transform = glm::rotate(new_object.transform, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+		//new_object.transform = glm::rotate(new_object.transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 		new_object.transform = glm::translate(new_object.transform, position);
 		
 
@@ -154,9 +154,16 @@ void Loader::load_scene(const std::string& filepath)
 
 		// append all the vertices to the vertex buffer
 		for (int i = 0; i < loaded_meshes[object.mesh_index].num_vertices; i++) {
-			temp_vertices.push_back(loaded_meshes[object.mesh_index].vertices[i * 3    ]);
-			temp_vertices.push_back(loaded_meshes[object.mesh_index].vertices[i * 3 + 1]);
-			temp_vertices.push_back(loaded_meshes[object.mesh_index].vertices[i * 3 + 2]);
+			// vertex has to be transformed before adding to the buffer
+			glm::vec4 vertex = glm::vec4(loaded_meshes[object.mesh_index].vertices[i * 3],
+								loaded_meshes[object.mesh_index].vertices[i * 3 + 1],
+								loaded_meshes[object.mesh_index].vertices[i * 3 + 2], 1.0f);
+
+			vertex = object.transform * vertex;
+
+			temp_vertices.push_back(vertex.x);
+			temp_vertices.push_back(vertex.y);
+			temp_vertices.push_back(vertex.z);
 		}
 
 		// Go through ech tri, add the vertex indices and create a per primitive material
@@ -178,9 +185,9 @@ void Loader::load_scene(const std::string& filepath)
 
 		// These are updated after the object are processed as during the loop we assume these
 		// represent the numbers of completed work
-		num_indices   += temp_indices.size();
-		num_vertices  += temp_vertices.size();
-		num_materials += temp_materials.size();
+		num_indices   = temp_indices.size();
+		num_vertices  = temp_vertices.size();
+		num_materials = temp_materials.size();
 	}
 
 	// Convert the vectors to c arrays
