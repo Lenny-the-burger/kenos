@@ -24,24 +24,9 @@
 struct Mesh {
 	std::string name;
 
-	// This is a float array of vertices because this is how we pass it to opengl
-	float* vertices;
-	int* indices;
-
-	int num_vertices;
-	int num_indices;
-
-	Mesh() {
-		vertices = nullptr;
-		indices = nullptr;
-		num_vertices = 0;
-		num_indices = 0;
-	}
-
-	~Mesh() {
-		//delete[] vertices; this causes an exception idk why someone FIXME
-		//delete[] indices;
-	}
+	// Actually we dont need to use c arrays here since we build a monobuffer
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::ivec3> indices;
 };
 
 // No name because this is stored per primive

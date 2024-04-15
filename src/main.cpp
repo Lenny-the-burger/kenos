@@ -34,7 +34,7 @@ bool should_update_aspect_ratio = true; // optimization to avoid updating aspect
 
 const char* WINDOW_TITLE = "helo tringl";
 
-std::string SCENE_FILE = "assets/cornell_box.json";
+std::string SCENE_FILE = "assets/test_scene.json";
 
 #pragma region IMGUI_VALS
 static float updown = -0.2f;

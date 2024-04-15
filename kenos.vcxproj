@@ -141,6 +141,7 @@
     <None Include="packages.config" />
     <None Include="README.md" />
     <None Include="src\assets\cornell_box.json" />
+    <None Include="src\assets\test_scene.json" />
     <None Include="src\shaders\vertex.glsl" />
     <None Include="src\shaders\fragment.glsl" />
   </ItemGroup>
@@ -174,6 +175,9 @@
     <Image Include="src\assets\wall.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <Object Include="src\assets\cube.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </Object>
     <Object Include="src\assets\monke.obj">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </Object>

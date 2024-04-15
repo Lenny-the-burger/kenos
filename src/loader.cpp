@@ -7,7 +7,7 @@ using json = nlohmann::json;
 
 using namespace std;
 
-void Loader::load_scene(const std::string& filepath)
+void Loader::load_scene(const std::string& filepath) 
 {
 	/*
 	* 1. Read scene file
@@ -71,7 +71,7 @@ void Loader::load_scene(const std::string& filepath)
 
 		Assimp::Importer importer;
 
-		const aiScene* scene = importer.ReadFile(mesh, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+		const aiScene* scene = importer.ReadFile(mesh, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 		// check if the mesh file is valid
 		if (!scene) {
@@ -87,23 +87,19 @@ void Loader::load_scene(const std::string& filepath)
 		Mesh new_mesh = Mesh();
 
 		// fill out the vertices
-		new_mesh.num_vertices = aiMesh->mNumVertices;
-		new_mesh.vertices = new float[new_mesh.num_vertices * 3];
-
-		for (int i = 0; i < new_mesh.num_vertices; i++) {
-			new_mesh.vertices[i * 3] = aiMesh->mVertices[i].x;
-			new_mesh.vertices[i * 3 + 1] = aiMesh->mVertices[i].y;
-			new_mesh.vertices[i * 3 + 2] = aiMesh->mVertices[i].z;
+		for (int i = 0; i < aiMesh->mNumVertices; i++) {
+			new_mesh.vertices.push_back(glm::vec3(
+				aiMesh->mVertices[i].x,
+				aiMesh->mVertices[i].y,
+				aiMesh->mVertices[i].z));
 		}
 
 		// fill out the indices
-		new_mesh.num_indices = aiMesh->mNumFaces * 3;
-		new_mesh.indices = new int[new_mesh.num_indices + 3];
-
 		for (int i = 0; i < aiMesh->mNumFaces; i++) {
-			new_mesh.indices[i * 3]     = aiMesh->mFaces[i].mIndices[0];
-			new_mesh.indices[i * 3 + 1] = aiMesh->mFaces[i].mIndices[1];
-			new_mesh.indices[i * 3 + 2] = aiMesh->mFaces[i].mIndices[2];
+			new_mesh.indices.push_back(glm::ivec3(
+				aiMesh->mFaces[i].mIndices[0],
+				aiMesh->mFaces[i].mIndices[1],
+				aiMesh->mFaces[i].mIndices[2]));
 		}
 
 		new_mesh.name = mesh;
@@ -130,9 +126,9 @@ void Loader::load_scene(const std::string& filepath)
 
 		new_object.transform = glm::mat4(1.0f);
 		new_object.transform = glm::scale(new_object.transform, scale);
-		//new_object.transform = glm::rotate(new_object.transform, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-		//new_object.transform = glm::rotate(new_object.transform, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-		//new_object.transform = glm::rotate(new_object.transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+		new_object.transform = glm::rotate(new_object.transform, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+		new_object.transform = glm::rotate(new_object.transform, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+		new_object.transform = glm::rotate(new_object.transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 		new_object.transform = glm::translate(new_object.transform, position);
 		
 
@@ -146,24 +142,22 @@ void Loader::load_scene(const std::string& filepath)
 	num_materials = 0;
 
 	// Temporary vectors to store stuff, these are later converted to c arrays
-	vector<float> temp_vertices;
-	vector<int> temp_indices;
+	vector<glm::vec3> temp_vertices;
+	vector<glm::ivec3> temp_indices;
 	vector<Material> temp_materials;
 
 	for (Scene_object& object : scene_objects) {
+		// can probably use insert() here but we need to modify the vertices and build materials
+		// so probably not
 
 		// append all the vertices to the vertex buffer
-		for (int i = 0; i < loaded_meshes[object.mesh_index].num_vertices; i++) {
+		for (int i = 0; i < loaded_meshes[object.mesh_index].vertices.size(); i++) {
 			// vertex has to be transformed before adding to the buffer
-			glm::vec4 vertex = glm::vec4(loaded_meshes[object.mesh_index].vertices[i * 3],
-								loaded_meshes[object.mesh_index].vertices[i * 3 + 1],
-								loaded_meshes[object.mesh_index].vertices[i * 3 + 2], 1.0f);
+			glm::vec4 vertex = glm::vec4(loaded_meshes[object.mesh_index].vertices[i], 1.0f);
 
 			vertex = object.transform * vertex;
 
-			temp_vertices.push_back(vertex.x);
-			temp_vertices.push_back(vertex.y);
-			temp_vertices.push_back(vertex.z);
+			temp_vertices.push_back(glm::vec3(vertex.x, vertex.y, vertex.z));
 		}
 
 		// Go through ech tri, add the vertex indices and create a per primitive material
@@ -173,34 +167,40 @@ void Loader::load_scene(const std::string& filepath)
 		// much mem anyway. Until there is a better way we do this boowomp
 
 		// Div the number by 3 because we want to iterate per triangle
-		for (int i = 0; i < loaded_meshes[object.mesh_index].num_indices / 3; i++) {
+		for (int i = 0; i < loaded_meshes[object.mesh_index].indices.size() / 3; i++) {
 			// When we add indeces, they should be offset by the previous number of vertices
-			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i * 3    ] + num_vertices);
-			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i * 3 + 1] + num_vertices);
-			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i * 3 + 2] + num_vertices);
+			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i] + glm::ivec3(num_vertices));
 
 			// Add the material
 			temp_materials.push_back(loaded_materials[object.material_index]);
 		}
 
 		// These are updated after the object are processed as during the loop we assume these
-		// represent the numbers of completed work
-		num_indices   = temp_indices.size();
+		// represent the numbers of completed 
 		num_vertices  = temp_vertices.size();
+		num_indices = temp_indices.size();
 		num_materials = temp_materials.size();
 	}
 
+	// Multiply verts and indxs by 3 since we store them as vec3 and ivec3
+	num_vertices *= 3;
+	num_indices *= 3;
+
 	// Convert the vectors to c arrays
-	all_vertices  = new float[temp_vertices.size()];
-	all_indices   = new int[temp_indices.size()];
-	all_materials = new Material[temp_materials.size()];
+	all_vertices  = new float[num_vertices];
+	all_indices   = new int[num_indices];
+	all_materials = new Material[num_materials];
 
 	for (int i = 0; i < temp_vertices.size(); i++) {
-		all_vertices[i] = temp_vertices[i];
+		all_vertices[i * 3 + 0] = temp_vertices[i].x;
+		all_vertices[i * 3 + 1] = temp_vertices[i].y;
+		all_vertices[i * 3 + 2] = temp_vertices[i].z;
 	}
 
 	for (int i = 0; i < temp_indices.size(); i++) {
-		all_indices[i] = temp_indices[i];
+		all_indices[i * 3 + 0] = temp_indices[i].x;
+		all_indices[i * 3 + 1] = temp_indices[i].y;
+		all_indices[i * 3 + 2] = temp_indices[i].z;
 	}
 
 	for (int i = 0; i < temp_materials.size(); i++) {

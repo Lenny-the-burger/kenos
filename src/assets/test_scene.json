@@ -1,0 +1,42 @@
+{
+  "sceneName": "Test scene",
+  "sceneDescription": "Basic test scene",
+  "meshes": [ "assets/cube.obj", "assets/plane.obj"],
+  "materials": [
+    {
+      "name": "diffuseWhite",
+      "albedo": [ 255, 255, 255 ],
+      "emissiveIntensity": 0,
+      "roughness": 1
+    },
+    {
+      "name": "diffuseRed",
+      "albedo": [ 255, 0, 0 ],
+      "emissiveIntensity": 0,
+      "roughness": 1
+    }
+  ],
+  "objects": [
+    {
+      "name": "cube",
+      "mesh": "assets/cube.obj",
+      "material": "diffuseWhite",
+      "position": [ 0, 1, 0 ],
+      "rotation": [ 0, 0, 0 ],
+      "scale": [ 1, 1, 1 ]
+    },
+    {
+      "name": "floor",
+      "mesh": "assets/plane.obj",
+      "material": "diffuseWhite",
+      "position": [ 0, -1, 0 ],
+      "rotation": [ 0, 0, 0 ],
+      "scale": [ 4, 4, 4 ]
+    }
+  ],
+  "camera": {
+    "position": [ 0, 2, -10 ],
+    "lookat": [ 0, 2, 0 ],
+    "fov": 90
+  }
+}
