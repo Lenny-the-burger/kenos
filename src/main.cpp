@@ -206,7 +206,7 @@ int main() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // for now all geometry is static
 
     // uncomment this call to draw in wireframe polygons.
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {

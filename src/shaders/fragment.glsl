@@ -21,11 +21,11 @@ void main()
 
 	vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
 
-    FragColor = vec4(mat_col, 1.0);
-
 	// Assuming depth value is in range [0, 1]
-    //float depth = gl_FragCoord.z; // Fetch depth from the built-in variable
+    float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in variable
+
+	depth *= 10.0f;
 
     // Output the depth value as grayscale
-    //FragColor = vec4(depth, depth, depth, 1.0);
+    FragColor = vec4(mat_col * depth, 1.0);
 }
