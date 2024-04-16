@@ -71,7 +71,7 @@ void Loader::load_scene(const std::string& filepath)
 
 		Assimp::Importer importer;
 
-		const aiScene* scene = importer.ReadFile(mesh, aiProcess_Triangulate | aiProcess_FlipUVs);
+		const aiScene* scene = importer.ReadFile(mesh, 0);
 
 		// check if the mesh file is valid
 		if (!scene) {
@@ -125,11 +125,12 @@ void Loader::load_scene(const std::string& filepath)
 		glm::vec3 scale = glm::vec3(object["scale"][0], object["scale"][1], object["scale"][2]);
 
 		new_object.transform = glm::mat4(1.0f);
-		new_object.transform = glm::scale(new_object.transform, scale);
+		new_object.transform = glm::translate(new_object.transform, position);
 		new_object.transform = glm::rotate(new_object.transform, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 		new_object.transform = glm::rotate(new_object.transform, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 		new_object.transform = glm::rotate(new_object.transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-		new_object.transform = glm::translate(new_object.transform, position);
+		new_object.transform = glm::scale(new_object.transform, scale);
+		
 		
 
 		scene_objects.push_back(new_object);
@@ -167,7 +168,7 @@ void Loader::load_scene(const std::string& filepath)
 		// much mem anyway. Until there is a better way we do this boowomp
 
 		// Div the number by 3 because we want to iterate per triangle
-		for (int i = 0; i < loaded_meshes[object.mesh_index].indices.size() / 3; i++) {
+		for (int i = 0; i < loaded_meshes[object.mesh_index].indices.size(); i++) {
 			// When we add indeces, they should be offset by the previous number of vertices
 			temp_indices.push_back(loaded_meshes[object.mesh_index].indices[i] + glm::ivec3(num_vertices));
 

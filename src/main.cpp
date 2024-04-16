@@ -34,7 +34,7 @@ bool should_update_aspect_ratio = true; // optimization to avoid updating aspect
 
 const char* WINDOW_TITLE = "helo tringl";
 
-std::string SCENE_FILE = "assets/test_scene.json";
+std::string SCENE_FILE = "assets/cornell_box.json";
 
 #pragma region IMGUI_VALS
 static float updown = -0.2f;
@@ -45,7 +45,7 @@ static float FOV = 45.0f;
 Loader scene_loader = Loader();
 
 // Camera position
-static glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, -3.0f);
+static glm::vec3 camera_pos = glm::vec3(0.0f, 1.0f, -5.0f);
 static glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 static glm::vec3 camera_lookat = glm::vec3(0.0f, 0.0f, 4.0f);
 
@@ -86,7 +86,7 @@ void draw_ui() {
 #pragma region UI
     // UI starts here
 
-    ImGui::SliderFloat("slider updown", &updown, -1.0f, 1.0f);
+    ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
 
 

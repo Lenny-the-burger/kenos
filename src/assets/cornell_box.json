@@ -37,57 +37,57 @@
   "objects": [
     {
       "name": "monke",
-      "mesh": "assets/plane.obj",
+      "mesh": "assets/monke.obj",
       "material": "diffuseWhite",
       "position": [ 0, 1, 0 ],
-      "rotation": [ 0, 0, 0 ],
+      "rotation": [ 0, 3.1415, 0 ],
       "scale": [ 1, 1, 1 ]
     },
     {
       "name": "floor",
       "mesh": "assets/plane.obj",
       "material": "diffuseWhite",
-      "position": [ 0, 0, 0 ],
+      "position": [ 0, -1, 0 ],
       "rotation": [ 3.1415, 0, 0 ],
-      "scale": [ 4, 4, 4 ]
+      "scale": [ 2, 2, 2 ]
     },
     {
       "name": "ceiling",
       "mesh": "assets/plane.obj",
       "material": "diffuseWhite",
-      "position": [ 0, 4, 0 ],
+      "position": [ 0, 3, 0 ],
       "rotation": [ 0, 0, 0 ],
-      "scale": [ 4, 4, 4 ]
+      "scale": [ 2, 2, 2 ]
     },
     {
       "name": "backboard",
       "mesh": "assets/plane.obj",
       "material": "diffuseWhite",
-      "position": [ 0, 2, 2 ],
+      "position": [ 0, 1, -2 ],
       "rotation": [ 1.5707, 0, 0 ],
-      "scale": [ 4, 4, 4 ]
+      "scale": [ 2, 2, 2 ]
     },
     {
       "name": "leftWall",
       "mesh": "assets/plane.obj",
       "material": "diffuseRed",
-      "position": [ 2, 2, 0 ],
+      "position": [ 2, 1, 0 ],
       "rotation": [ 3.1415, 0, -1.5707 ],
-      "scale": [ 4, 4, 4 ]
+      "scale": [ 2, 2, 2 ]
     },
     {
       "name": "rightWall",
       "mesh": "assets/plane.obj",
       "material": "diffuseGreen",
-      "position": [ -2, 2, 0 ],
+      "position": [ -2, 1, 0 ],
       "rotation": [ 3.1415, 0, 1.5707 ],
-      "scale": [ 4, 4, 4 ]
+      "scale": [ 2, 2, 2 ]
     },
     {
       "name": "light",
       "mesh": "assets/plane.obj",
       "material": "emissive",
-      "position": [ 0, 3.9, 0 ],
+      "position": [ 0, 2.9, 0 ],
       "rotation": [ 3.1415, 0, 0 ],
       "scale": [ 0.75, 0.75, 0.75 ]
     }
