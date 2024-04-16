@@ -39,6 +39,7 @@ std::string SCENE_FILE = "assets/cornell_box.json";
 #pragma region IMGUI_VALS
 static float updown = -0.2f;
 static float FOV = 45.0f;
+static int debug_id = 0;
 
 #pragma endregion
 
@@ -88,6 +89,7 @@ void draw_ui() {
 
     ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
+    ImGui::SliderInt("Debug id", &debug_id, 0, 512);
 
 
 #pragma endregion
@@ -254,6 +256,11 @@ int main() {
             // optimize that since we set it every frame right now
 			should_update_aspect_ratio = false;
 		}
+
+        {   // Set the debug id
+			unsigned int debugLoc = glGetUniformLocation(ourShader.ID, "debug_id");
+			glUniform1i(debugLoc, debug_id);
+        }
 
 #pragma endregion
 

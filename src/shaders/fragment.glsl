@@ -1,6 +1,8 @@
 #version 460 core
 out vec4 FragColor;
 
+uniform int debug_id;
+
 struct Material {
 	float emissive_strength;
 	float color_r; // seperate color channels so we dont have to deal with arrays
@@ -27,5 +29,11 @@ void main()
 	depth *= 10.0f;
 
     // Output the depth value as grayscale
+
+	if (gl_PrimitiveID == debug_id) {
+		// Set to a purple for debugging
+		mat_col = vec3(1.0, 0.0, 1.0);
+	}
+
     FragColor = vec4(mat_col * depth, 1.0);
 }
