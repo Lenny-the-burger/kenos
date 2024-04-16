@@ -152,17 +152,7 @@ int main() {
     // Create shaders
     Shader ourShader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    //float vertices[] = {
-    //     0.5f, -0.5f + 0.211f, 0.0f,   // bottom right
-    //    -0.5f, -0.5f + 0.211f, 0.0f,   // bottom left
-    //     0.0f,  0.366f+0.211f, 0.0f    // top 
-    //};
-    //unsigned int indices[] = {  // note that we start from 0!
-    //    0, 1, 2,   // first triangle
-    //};
-
+    // set up index and vertex buffers
     int num_vertices = scene_loader.get_num_vertices();
     int num_indices = scene_loader.get_num_indices();
 
@@ -201,6 +191,19 @@ int main() {
     // VAO, but this rarely happens. Modifying other VAOs requires a call to glBindVertexArray
     // anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
+
+    // set up material buffer ssbo
+    Material* materials = new Material[scene_loader.get_num_materials()];
+
+    materials = scene_loader.get_materials();
+    int num_materials = scene_loader.get_num_materials();
+
+    unsigned int material_ssbo;
+    glGenBuffers(1, &material_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, material_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Material) * num_materials, materials, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, material_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // for now all geometry is static
 
     // uncomment this call to draw in wireframe polygons.
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
