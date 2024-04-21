@@ -40,6 +40,7 @@ std::string SCENE_FILE = "assets/cornell_box.json";
 static float updown = -0.2f;
 static float FOV = 45.0f;
 static int debug_id = 0;
+static int debug_id_max = 512;
 
 #pragma endregion
 
@@ -89,7 +90,7 @@ void draw_ui() {
 
     ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
-    ImGui::SliderInt("Debug id", &debug_id, 0, 512);
+    ImGui::SliderInt("Debug id", &debug_id, 0, debug_id_max);
 
 
 #pragma endregion
@@ -146,6 +147,9 @@ int main() {
     Scene_information scene_info = scene_loader.get_scene_info();
     // set the fov
     FOV = scene_info.camera_fov;
+
+    // set debug id max (amount of primitives)
+    debug_id_max = scene_loader.get_num_indices() / 3;
 
 
     // Set the viewport
