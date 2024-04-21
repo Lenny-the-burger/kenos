@@ -71,7 +71,7 @@ void Loader::load_scene(const std::string& filepath)
 
 		Assimp::Importer importer;
 
-		const aiScene* scene = importer.ReadFile(mesh, 0);
+		const aiScene* scene = importer.ReadFile(mesh, aiProcess_Triangulate);
 
 		// check if the mesh file is valid
 		if (!scene) {
