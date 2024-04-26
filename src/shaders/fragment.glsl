@@ -8,6 +8,13 @@ uniform int debug_id;
 // OpenGL has a fucked up way of including other files so now just define everything
 // in the fragment shader
 
+struct Lightmap {
+    vec3 ambientColor;
+    vec3 diffuseColor;
+    vec3 specularColor;
+    // Add other properties as needed
+};
+
 
 struct Material {
 	float emissive_strength;
@@ -22,12 +29,18 @@ layout(std430, binding = 0) buffer MaterialBuffer {
 	Material material_buffer[];
 };
 
+layout(std430, binding = 1) buffer LightmapBuffer {
+    Lightmap lightmaps[];
+};
+
 void main()
 {
 	// get material from the ssbo
 	Material mat = material_buffer[gl_PrimitiveID];
+	Lightmap lm = lightmaps[gl_PrimitiveID];
 
-	vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
+	//vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
+	vec3 mat_col = lm.diffuseColor;
 
 	// Assuming depth value is in range [0, 1]
     float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in variable

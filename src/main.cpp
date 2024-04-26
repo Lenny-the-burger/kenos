@@ -208,7 +208,7 @@ int main() {
     // anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
 
-    // set up material buffer SSBO
+    // set up material buffer ssbo
     Material* materials = new Material[scene_loader.get_num_materials()];
 
     materials = scene_loader.get_materials();
@@ -218,8 +218,8 @@ int main() {
     glGenBuffers(1, &material_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, material_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Material) * num_materials, materials, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, material_ssbo); // Binding point 1 for material SSBO
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Unbind SSBO
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, material_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // for now all geometry is static
 
     // set up Lightmap buffer SSBO
     int num_primitives = scene_loader.get_num_primitives();
@@ -230,7 +230,7 @@ int main() {
     glGenBuffers(1, &lightmap_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Lightmap) * num_primitives, lightmaps, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, lightmap_ssbo); // Binding point 2 for lightmap SSBO
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightmap_ssbo); // Binding point 2 for lightmap SSBO
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Unbind SSBO
 
     // uncomment this call to draw in wireframe polygons.
@@ -241,12 +241,11 @@ int main() {
         // We have to compute the scene first
 #pragma region COMPUTE
 
-        int totalWorkGroupSize = 32;
-        int numWorkGroups = num_primitives / totalWorkGroupSize + 1;
-
+        int workGroupSize = 64;
+        
         computeShader.use();
 
-
+        int numWorkGroups = (num_primitives + workGroupSize - 1) / workGroupSize;
         glDispatchCompute(numWorkGroups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 

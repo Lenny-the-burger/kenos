@@ -1,6 +1,6 @@
 #version 460
 
-layout(local_size_x = 1) in;
+layout(local_size_x = 64) in;
 
 // Define the layout of the Lightmap struct
 struct Lightmap {
@@ -18,9 +18,10 @@ struct Material {
 	float color_b;
 	float roughness;
 };
+
 // Declare the SSBOs
 layout(std430, binding = 0) buffer MaterialBuffer {
-    Material materials[];
+	Material material_buffer[];
 };
 
 layout(std430, binding = 1) buffer LightmapBuffer {
@@ -45,7 +46,7 @@ vec3 getVertexPosition(int index) {
 
 void main() {
     // Get the primitive ID from global invocation ID
-    int primitiveID = int(gl_GlobalInvocationID.x);
+    int primitiveID = int(gl_GlobalInvocationID);
 
     // Get indices of vertices for the primitive
     int baseIndex = primitiveID * 3; // Each primitive has 3 vertices
@@ -69,6 +70,6 @@ void main() {
 
     // Write results to Lightmap buffer
     lightmaps[primitiveID].ambientColor = vec3(0.1, 0.1, 0.1); // Example ambient color
-    lightmaps[primitiveID].diffuseColor = vec3(0.5, 0.5, 0.5); // Example diffuse color
+    lightmaps[primitiveID].diffuseColor = vec3(0.8, 0.1, 0.4); // Example diffuse color
     lightmaps[primitiveID].specularColor = vec3(1.0, 1.0, 1.0); // Example specular color
 }
