@@ -20,6 +20,7 @@ using json = nlohmann::json;
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "shader.h"
+#include "shader_compute.h"
 
 #include "loader.h"
 
@@ -50,6 +51,14 @@ Loader scene_loader = Loader();
 static glm::vec3 camera_pos = glm::vec3(0.0f, 1.0f, -5.0f);
 static glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 static glm::vec3 camera_lookat = glm::vec3(0.0f, 0.0f, 4.0f);
+
+// Lightmap struct
+struct Lightmap {
+    glm::vec3 ambientColor;
+    glm::vec3 diffuseColor;
+    glm::vec3 specularColor;
+    // Add other properties as needed
+};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -157,6 +166,7 @@ int main() {
 
     // Create shaders
     Shader ourShader("shaders/vertex.glsl", "shaders/fragment.glsl");
+    ComputeShader computeShader("shaders/compute.glsl");
 
     // set up index and vertex buffers
     int num_vertices = scene_loader.get_num_vertices();
@@ -198,7 +208,7 @@ int main() {
     // anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
 
-    // set up material buffer ssbo
+    // set up material buffer SSBO
     Material* materials = new Material[scene_loader.get_num_materials()];
 
     materials = scene_loader.get_materials();
@@ -208,14 +218,45 @@ int main() {
     glGenBuffers(1, &material_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, material_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Material) * num_materials, materials, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, material_ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // for now all geometry is static
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, material_ssbo); // Binding point 1 for material SSBO
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Unbind SSBO
+
+    // set up Lightmap buffer SSBO
+    int num_primitives = scene_loader.get_num_primitives();
+
+    Lightmap* lightmaps = new Lightmap[num_primitives]; // Assuming num_primitives is known
+
+    unsigned int lightmap_ssbo;
+    glGenBuffers(1, &lightmap_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Lightmap) * num_primitives, lightmaps, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, lightmap_ssbo); // Binding point 2 for lightmap SSBO
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Unbind SSBO
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
+        // We have to compute the scene first
+#pragma region COMPUTE
+
+        int totalWorkGroupSize = 32;
+        int numWorkGroups = num_primitives / totalWorkGroupSize + 1;
+
+        computeShader.use();
+
+
+        glDispatchCompute(numWorkGroups, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+
+#pragma endregion
+
+        // Switch from computing to rendering
+
+#pragma region RENDER
+
         processInput(window);
         draw_ui();
 
@@ -224,8 +265,6 @@ int main() {
 
         // draw our first triangle
         ourShader.use();
-
-#pragma region RENDER
 
         {   // Set the model matrix
             glm::mat4 transform = glm::mat4(1.0f);

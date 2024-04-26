@@ -1,7 +1,13 @@
 #version 460 core
+
 out vec4 FragColor;
 
 uniform int debug_id;
+
+
+// OpenGL has a fucked up way of including other files so now just define everything
+// in the fragment shader
+
 
 struct Material {
 	float emissive_strength;

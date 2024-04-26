@@ -142,6 +142,7 @@
     <None Include="README.md" />
     <None Include="src\assets\cornell_box.json" />
     <None Include="src\assets\test_scene.json" />
+    <None Include="src\shaders\compute.glsl" />
     <None Include="src\shaders\vertex.glsl" />
     <None Include="src\shaders\fragment.glsl" />
   </ItemGroup>
@@ -157,6 +158,7 @@
     <ClCompile Include="src\loader.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\shader.cpp" />
+    <ClCompile Include="src\shader_compute.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\imgui\imconfig.h" />
@@ -170,6 +172,7 @@
     <ClInclude Include="src\imgui\imstb_truetype.h" />
     <ClInclude Include="src\loader.h" />
     <ClInclude Include="src\shader.h" />
+    <ClInclude Include="src\shader_compute.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\assets\wall.jpg" />

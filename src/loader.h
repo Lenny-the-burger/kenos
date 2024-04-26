@@ -78,6 +78,8 @@ public:
 	Material* get_materials() { return all_materials; }
 	int get_num_materials() { return num_materials; }
 
+	int get_num_primitives() { return num_materials; } // one material per primitive
+
 	// Get the scene information
 	Scene_information get_scene_info() { return scene_info; }
 
