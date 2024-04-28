@@ -4,9 +4,9 @@ layout(local_size_x = 64) in;
 
 // Define the layout of the Lightmap struct
 struct Lightmap {
-    vec3 ambientColor;
-    vec3 diffuseColor;
-    vec3 specularColor;
+    vec4 ambientColor;
+    vec4 diffuseColor;
+    vec4 specularColor;
     // Add other properties as needed
 };
 
@@ -33,9 +33,16 @@ layout(std430, binding = 1) buffer IndexBuffer {
     int indices[];
 };
 
-// Define a buffer to hold vertices
-layout(std430, binding = 3) buffer VertexBuffer {
-    float vertices[];
+/**
+ * ==== SSBOs ====
+ */
+
+layout(std430, binding = 2) buffer MaterialBuffer {
+	Material material_buffer[];
+};
+
+layout(std430, binding = 3) buffer LightmapBuffer {
+    Lightmap lightmaps[];
 };
 
 // Function to calculate vertex position from index
@@ -69,7 +76,18 @@ void main() {
     // Lightmap lightmap = lightmaps[primitiveID]; // Uncomment this line if lightmaps are needed
 
     // Write results to Lightmap buffer
-    lightmaps[primitiveID].ambientColor = vec3(0.1, 0.1, 0.1); // Example ambient color
-    lightmaps[primitiveID].diffuseColor = vec3(0.8, 0.1, 0.4); // Example diffuse color
-    lightmaps[primitiveID].specularColor = vec3(1.0, 1.0, 1.0); // Example specular color
+    lightmaps[primitiveID].ambientColor = vec4(0.1, 0.1, 0.1, 0.0); // Example ambient color
+    lightmaps[primitiveID].diffuseColor = vec4(0.8, 0.1, 0.4, 0.0); // Example diffuse color
+    lightmaps[primitiveID].specularColor = vec4(1.0, 1.0, 1.0, 0.0); // Example specular color
+
+	// Write results to Material buffer
+    vec3 normal = normalize(cross(vertex2 - vertex1, vertex3 - vertex1));
+
+    vec3 ex_dir = vec3(0.0, 0.0, 1.0);
+    float cos_theta = dot(normal, ex_dir);
+
+    // normalize to 0-1
+    cos_theta = (cos_theta + 1.0) / 2.0;
+
+    material_buffer[primitiveID].emissive_strength = cos_theta;
 }

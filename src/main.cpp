@@ -54,9 +54,9 @@ static glm::vec3 camera_lookat = glm::vec3(0.0f, 0.0f, 4.0f);
 
 // Lightmap struct
 struct Lightmap {
-    glm::vec3 ambientColor;
-    glm::vec3 diffuseColor;
-    glm::vec3 specularColor;
+    glm::vec4 ambientColor;
+    glm::vec4 diffuseColor;
+    glm::vec4 specularColor;
     // Add other properties as needed
 };
 
@@ -224,8 +224,9 @@ int main() {
     glGenBuffers(1, &material_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, material_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Material) * num_materials, materials, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, material_ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // for now all geometry is static
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, material_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, material_ssbo); // for now all geometry is static
+
 
     // We dont need to initilize lightmaps since we will write to them in the compute shader
 

@@ -52,6 +52,9 @@
     <None Include="src\shaders\compute.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="kenos.cap">
+      <Filter>Miscellaneous</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">

@@ -9,9 +9,9 @@ uniform int debug_id;
 // in the fragment shader
 
 struct Lightmap {
-    vec3 ambientColor;
-    vec3 diffuseColor;
-    vec3 specularColor;
+    vec4 ambientColor;
+    vec4 diffuseColor;
+    vec4 specularColor;
     // Add other properties as needed
 };
 
@@ -25,11 +25,11 @@ struct Material {
 };
 
 // bind the material ssbo
-layout(std430, binding = 0) buffer MaterialBuffer {
+layout(std430, binding = 2) buffer MaterialBuffer {
 	Material material_buffer[];
 };
 
-layout(std430, binding = 1) buffer LightmapBuffer {
+layout(std430, binding = 3) buffer LightmapBuffer {
     Lightmap lightmaps[];
 };
 
@@ -40,7 +40,7 @@ void main()
 	Lightmap lm = lightmaps[gl_PrimitiveID];
 
 	//vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
-	vec3 mat_col = lm.diffuseColor;
+	vec3 mat_col = lm.diffuseColor.xyz;
 
 	// Assuming depth value is in range [0, 1]
     float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in variable
@@ -54,5 +54,7 @@ void main()
 		mat_col = vec3(1.0, 0.0, 1.0);
 	}
 
-    FragColor = vec4(mat_col * depth, 1.0);
+	float debug_dot = mat.emissive_strength;
+
+    FragColor = vec4(mat_col * depth * debug_dot, 1.0);
 }
