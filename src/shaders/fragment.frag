@@ -1,28 +1,8 @@
-#version 460 core
+// !! do not define version in shader the compiler does it for us !!
 
 out vec4 FragColor;
 
 uniform int debug_id;
-
-
-// OpenGL has a fucked up way of including other files so now just define everything
-// in the fragment shader
-
-struct Lightmap {
-    vec4 ambientColor;
-    vec4 diffuseColor;
-    vec4 specularColor;
-    // Add other properties as needed
-};
-
-
-struct Material {
-	float emissive_strength;
-	float color_r; // seperate color channels so we dont have to deal with arrays
-	float color_g;
-	float color_b;
-	float roughness;
-};
 
 // bind the material ssbo
 layout(std430, binding = 2) buffer MaterialBuffer {
