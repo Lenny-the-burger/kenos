@@ -5,7 +5,7 @@
         "commandLine": "",
         "environment": [
         ],
-        "executable": "C:\\Users\\main\\source\\repos\\kenos\\x64\\Debug\\kenos.exe",
+        "executable": "x64/Debug/kenos.exe",
         "inject": false,
         "numQueuedFrames": 1,
         "options": {
@@ -23,6 +23,6 @@
             "verifyBufferAccess": false
         },
         "queuedFrameCap": 10,
-        "workingDir": "C:/Users/main/source/repos/kenos/src"
+        "workingDir": "src/"
     }
 }
