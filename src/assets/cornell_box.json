@@ -88,7 +88,7 @@
       "mesh": "assets/plane.obj",
       "material": "emissive",
       "position": [ 0, 2.9, 0 ],
-      "rotation": [ 3.1415, 0, 0 ],
+      "rotation": [ 0, 0, 0 ],
       "scale": [ 0.75, 0.75, 0.75 ]
     }
   ],
