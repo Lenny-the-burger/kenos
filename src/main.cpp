@@ -164,9 +164,13 @@ int main() {
     // Set the viewport
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    std::vector<std::string> shader_includes = {
+        "shaders/common.glsl"
+    };
+
     // Create shaders
-    Shader ourShader("shaders/vertex.glsl", "shaders/fragment.glsl");
-    ComputeShader computeShader("shaders/compute.glsl");
+    Shader raster_shader("shaders/vertex.vert", "shaders/fragment.frag", shader_includes, 460);
+    ComputeShader compute_shader_frame("shaders/compute_frame.comp", shader_includes, 460);
 
     // set up index and vertex buffers
     int num_vertices = scene_loader.get_num_vertices();
@@ -251,7 +255,7 @@ int main() {
 
         int num_primitives = scene_loader.get_num_primitives();
         
-        computeShader.use();
+        compute_shader_frame.use();
 
         int numWorkGroups = (num_primitives + workGroupSize - 1) / workGroupSize;
         glDispatchCompute(numWorkGroups, 1, 1);
@@ -271,7 +275,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw our first triangle
-        ourShader.use();
+        raster_shader.use();
 
         {   // Set the model matrix
             glm::mat4 transform = glm::mat4(1.0f);
@@ -280,7 +284,7 @@ int main() {
             // rotate around the y axis 180 because i messed up the model
             transform = glm::rotate(transform, PI, glm::vec3(0.0f, 1.0f, 0.0f));
 
-            unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "model");
+            unsigned int transformLoc = glGetUniformLocation(raster_shader.ID, "model");
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
         }
 
@@ -288,7 +292,7 @@ int main() {
             glm::mat4 view = glm::mat4(1.0f);
             view = glm::lookAt(camera_pos, camera_lookat, camera_up);
 
-            unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+            unsigned int viewLoc = glGetUniformLocation(raster_shader.ID, "view");
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         }
 
@@ -296,7 +300,7 @@ int main() {
             glm::mat4 projection = glm::mat4(1.0f);
             projection = glm::perspective(glm::radians(FOV), aspect_ratio, 0.1f, 100.0f);
 
-            unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+            unsigned int projectionLoc = glGetUniformLocation(raster_shader.ID, "projection");
             glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         }
 
@@ -308,7 +312,7 @@ int main() {
 		}
 
         {   // Set the debug id
-			unsigned int debugLoc = glGetUniformLocation(ourShader.ID, "debug_id");
+			unsigned int debugLoc = glGetUniformLocation(raster_shader.ID, "debug_id");
 			glUniform1i(debugLoc, debug_id);
         }
 

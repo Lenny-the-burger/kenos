@@ -2,7 +2,7 @@
 
 
     // constructor reads and builds the shader
-ComputeShader::ComputeShader(const char* shaderPath)
+ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> includes, int version)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string shaderCode;
@@ -20,6 +20,33 @@ ComputeShader::ComputeShader(const char* shaderPath)
         cShaderFile.close();
         // convert stream into string
         shaderCode = cShaderStream.str();
+
+        // read includes
+        for (int i = 0; i < includes.size(); i++)
+		{
+			std::string include = includes[i];
+			std::ifstream includeFile;
+			includeFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			try
+			{
+				includeFile.open(include);
+				std::stringstream includeStream;
+				includeStream << includeFile.rdbuf();
+				includeFile.close();
+				
+                // append include code to the start of the shader code
+                shaderCode = includeStream.str() + shaderCode;
+			}
+			catch (std::ifstream::failure& e)
+			{
+				std::cout << "ERROR::SHADER::INCLUDE_FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+			}
+		}
+
+        // Prepend version
+        std::string versionString = "#version " + std::to_string(version) + "\n\n";
+        shaderCode = versionString + shaderCode;
+
     }
     catch (std::ifstream::failure& e)
     {

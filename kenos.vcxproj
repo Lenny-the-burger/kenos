@@ -143,9 +143,11 @@
     <None Include="README.md" />
     <None Include="src\assets\cornell_box.json" />
     <None Include="src\assets\test_scene.json" />
-    <None Include="src\shaders\compute.glsl" />
-    <None Include="src\shaders\vertex.glsl" />
-    <None Include="src\shaders\fragment.glsl" />
+    <None Include="src\shaders\common.glsl" />
+    <None Include="src\shaders\compute_frame.comp" />
+    <None Include="src\shaders\compute_startup.comp" />
+    <None Include="src\shaders\vertex.vert" />
+    <None Include="src\shaders\fragment.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c" />

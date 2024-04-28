@@ -28,10 +28,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="src\shaders\vertex.glsl">
+    <None Include="src\shaders\vertex.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="src\shaders\fragment.glsl">
+    <None Include="src\shaders\fragment.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include=".gitattributes">
@@ -49,11 +49,17 @@
     <None Include="src\assets\test_scene.json">
       <Filter>Assets</Filter>
     </None>
-    <None Include="src\shaders\compute.glsl">
+    <None Include="src\shaders\compute_frame.comp">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="kenos.cap">
       <Filter>Miscellaneous</Filter>
+    </None>
+    <None Include="src\shaders\compute_startup.comp">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="src\shaders\common.glsl">
+      <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

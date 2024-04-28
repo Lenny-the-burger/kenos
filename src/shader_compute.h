@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 
 class ComputeShader
@@ -18,7 +19,7 @@ public:
     unsigned int ID;
 
     // constructor reads and builds the shader
-    ComputeShader(const char* shaderPath);
+    ComputeShader(const char* shaderPath, std::vector<std::string> includes, int version);
     // use/activate the shader
     void use();
     // utility uniform functions

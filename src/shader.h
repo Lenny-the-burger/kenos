@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 
 class Shader
@@ -17,8 +18,8 @@ public:
     // the program ID
     unsigned int ID;
 
-    // constructor reads and builds the shader
-    Shader(const char* vertexPath, const char* fragmentPath);
+    // constructor reads and builds the shader !! includes are only for fragment shader !!
+    Shader(const char* vertexPath, const char* fragmentPath, std::vector<std::string> includes, int version);
     // use/activate the shader
     void use();
     // utility uniform functions
