@@ -241,7 +241,9 @@ int main() {
         // We have to compute the scene first
 #pragma region COMPUTE
 
-        int workGroupSize = 64;
+        int workGroupSize = 64; // !! THIS HAS TO MATCH THE WORK GROUP SIZE IN THE COMPUTE SHADER !!
+
+        int num_primitives = scene_loader.get_num_primitives();
         
         computeShader.use();
 
