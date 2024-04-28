@@ -19,17 +19,17 @@ struct Material {
 	float roughness;
 };
 
-// Declare the SSBOs
-layout(std430, binding = 0) buffer MaterialBuffer {
-	Material material_buffer[];
-};
+/**
+ * ==== Vertex/Index buffers ====
+ */
 
-layout(std430, binding = 1) buffer LightmapBuffer {
-    Lightmap lightmaps[];
+// Define a buffer to hold vertices
+layout(std430, binding = 0) buffer VertexBuffer {
+    float vertices[];
 };
 
 // Define a buffer to hold indices of vertices
-layout(std430, binding = 2) buffer IndexBuffer {
+layout(std430, binding = 1) buffer IndexBuffer {
     int indices[];
 };
 
