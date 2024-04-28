@@ -1,17 +1,11 @@
 // !! do not define version in shader the compiler does it for us !!
+// This file includes common.glsl during compilation
+#line 4
 
 out vec4 FragColor;
 
 uniform int debug_id;
 
-// bind the material ssbo
-layout(std430, binding = 2) buffer MaterialBuffer {
-	Material material_buffer[];
-};
-
-layout(std430, binding = 3) buffer LightmapBuffer {
-    Lightmap lightmaps[];
-};
 
 void main()
 {
@@ -19,8 +13,8 @@ void main()
 	Material mat = material_buffer[gl_PrimitiveID];
 	Lightmap lm = lightmaps[gl_PrimitiveID];
 
-	//vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
-	vec3 mat_col = lm.diffuseColor.xyz;
+	vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
+	//vec3 mat_col = lm.diffuseColor.xyz;
 
 	// Assuming depth value is in range [0, 1]
     float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in variable

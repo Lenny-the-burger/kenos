@@ -59,7 +59,7 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
     compute = glCreateShader(GL_COMPUTE_SHADER);
     glShaderSource(compute, 1, &cShaderCode, NULL);
     glCompileShader(compute);
-    checkCompileErrors(compute, "SHADER");;
+    checkCompileErrors(compute, "COMPUTE");;
     // shader Program
     ID = glCreateProgram();
     glAttachShader(ID, compute);

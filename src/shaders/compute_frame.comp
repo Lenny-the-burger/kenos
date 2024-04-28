@@ -1,57 +1,23 @@
 // !! do not specify version in the shader this is done by the compiler !!
-
+// This file includes common.glsl during compilation
+#line 4
 
 layout(local_size_x = 64) in;
 
-/**
- * ==== Vertex/Index buffers ====
- */
-
-// Define a buffer to hold vertices
-layout(std430, binding = 0) buffer VertexBuffer {
-    float vertices[];
-};
-
-// Define a buffer to hold indices of vertices
-layout(std430, binding = 1) buffer IndexBuffer {
-    int indices[];
-};
-
-/**
- * ==== SSBOs ====
- */
-
-layout(std430, binding = 2) buffer MaterialBuffer {
-	Material material_buffer[];
-};
-
-layout(std430, binding = 3) buffer LightmapBuffer {
-    Lightmap lightmaps[];
-};
-
-// Function to calculate vertex position from index
-vec3 getVertexPosition(int index) {
-    int baseIndex = index * 3; // Each vertex has 3 components
-    return vec3(vertices[baseIndex], vertices[baseIndex + 1], vertices[baseIndex + 2]);
-}
-
 void main() {
-    // Get the primitive ID from global invocation ID
-    int primitiveID = int(gl_GlobalInvocationID);
+    // ====== Variable format: ======
+    // c_ prefix for caster related variables, e.g. c_prim would be the triangle that is 
+    //     casting light.
+    // r_ prefix for receiver related variables, e.g. r_prim would be the triangle that is
+    //     receiving light.
+    // s_ prefix for shadow related variables, e.g. s_prim would be the triangle that is
+    //     casting a shadow from the caster onto the receiver.
+    // ==============================
 
-    // Get indices of vertices for the primitive
-    int baseIndex = primitiveID * 3; // Each primitive has 3 vertices
-    int vertexIndex1 = indices[baseIndex];
-    int vertexIndex2 = indices[baseIndex + 1];
-    int vertexIndex3 = indices[baseIndex + 2];
+    int primitiveID = int(gl_GlobalInvocationID.x);
 
-    // Get the vertices themselves
-    vec3 vertex1 = getVertexPosition(vertexIndex1);
-    vec3 vertex2 = getVertexPosition(vertexIndex2);
-    vec3 vertex3 = getVertexPosition(vertexIndex3);
+    Triangle c_prim = get_primitive(primitiveID);
 
-    // Perform computations on the vertices...
-    // Example: calculate normal, lighting, etc.
 
     // Access Material data (example)
     // Material material = materials[primitiveID]; // Uncomment this line if materials are needed
@@ -59,16 +25,8 @@ void main() {
     // Access Lightmap data (example)
     // Lightmap lightmap = lightmaps[primitiveID]; // Uncomment this line if lightmaps are needed
 
-    // Write results to Lightmap buffer
-    lightmaps[primitiveID].ambientColor = vec4(0.1, 0.1, 0.1, 0.0); // Example ambient color
-    lightmaps[primitiveID].diffuseColor = vec4(0.8, 0.1, 0.4, 0.0); // Example diffuse color
-    lightmaps[primitiveID].specularColor = vec4(1.0, 1.0, 1.0, 0.0); // Example specular color
-
-	// Write results to Material buffer
-    vec3 normal = normalize(cross(vertex2 - vertex1, vertex3 - vertex1));
-
     vec3 ex_dir = vec3(0.0, 0.0, 1.0);
-    float cos_theta = dot(normal, ex_dir);
+    float cos_theta = dot(c_prim.normal, ex_dir);
 
     // normalize to 0-1
     cos_theta = (cos_theta + 1.0) / 2.0;
