@@ -1,7 +1,5 @@
 #version 460
 
-layout(local_size_x = 64) in;
-
 // Define the layout of the Lightmap struct
 struct Lightmap {
     vec4 ambientColor;
@@ -18,6 +16,8 @@ struct Material {
 	float color_b;
 	float roughness;
 };
+
+layout(local_size_x = 64) in;
 
 /**
  * ==== Vertex/Index buffers ====
