@@ -209,7 +209,7 @@ int main() {
     glBindVertexArray(0);
 
     // set up material buffer ssbo
-    Material* materials = new Material[scene_loader.get_num_materials()];
+    Material* materials;
 
     materials = scene_loader.get_materials();
     int num_materials = scene_loader.get_num_materials();
@@ -221,17 +221,16 @@ int main() {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, material_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // for now all geometry is static
 
-    // set up Lightmap buffer SSBO
-    int num_primitives = scene_loader.get_num_primitives();
+    // We dont need to initilize lightmaps since we will write to them in the compute shader
 
-    Lightmap* lightmaps = new Lightmap[num_primitives]; // Assuming num_primitives is known
+    int num_lightmaps = scene_loader.get_num_primitives();
 
     unsigned int lightmap_ssbo;
     glGenBuffers(1, &lightmap_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Lightmap) * num_primitives, lightmaps, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightmap_ssbo); // Binding point 2 for lightmap SSBO
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // Unbind SSBO
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Lightmap) * num_lightmaps, nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, lightmap_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo); // for now all geometry is static
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
