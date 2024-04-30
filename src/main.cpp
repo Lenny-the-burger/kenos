@@ -42,6 +42,7 @@ static float updown = -0.2f;
 static float FOV = 45.0f;
 static int debug_id = 0;
 static int debug_id_max = 512;
+static float debug_grid_size = 0.05f;
 
 #pragma endregion
 
@@ -97,9 +98,20 @@ void draw_ui() {
 #pragma region UI
     // UI starts here
 
+    // Debugging
+
+    if (ImGui::CollapsingHeader("Debug")) {
+		ImGui::Text("Debugging options");
+        ImGui::SliderInt("Debug id", &debug_id, 0, debug_id_max);
+        ImGui::SliderFloat("Debug grid size", &debug_grid_size, 0.0f, 1.0f);
+
+        // spacing for better readability
+        ImGui::Spacing();
+	}
+
     ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
-    ImGui::SliderInt("Debug id", &debug_id, 0, debug_id_max);
+    
 
 
 #pragma endregion
@@ -314,6 +326,9 @@ int main() {
         {   // Set the debug id
 			unsigned int debugLoc = glGetUniformLocation(raster_shader.ID, "debug_id");
 			glUniform1i(debugLoc, debug_id);
+
+            unsigned int debugGridSizeLoc = glGetUniformLocation(raster_shader.ID, "debug_grid_size_uniform");
+            glUniform1f(debugGridSizeLoc, debug_grid_size);
         }
 
 #pragma endregion

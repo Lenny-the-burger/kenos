@@ -24,8 +24,11 @@ void main()
     // Output the depth value as grayscale
 
 	if (gl_PrimitiveID == debug_id) {
-		// Set to a purple for debugging
-		mat_col = vec3(1.0, 0.0, 1.0);
+		// Set to a purple grid for debugging
+		FragColor = vec4(DEBUG_COLOR * 
+			(sin(worldPos.x * GRID_SHADER_SIZE) > cos(worldPos.z * GRID_SHADER_SIZE) ? 1.0 : 0.0),
+			1.0);
+		return;
 	}
 
 	float debug_dot = mat.emissive_strength;

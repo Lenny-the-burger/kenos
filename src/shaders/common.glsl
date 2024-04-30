@@ -2,7 +2,14 @@
 // This file is included in all shaders that need it
 // !! do not specify version in the shader this is done by the compiler !!
 
-//! ========================= STRUCTS =========================
+// ========================= ENGINE CONTANTS =========================
+
+uniform float debug_grid_size_uniform;
+
+#define GRID_SHADER_SIZE 1.0 / debug_grid_size_uniform
+#define DEBUG_COLOR vec3(1.0, 0.0, 1.0)
+
+// ========================= STRUCTS =========================
 
 // Define the layout of the Lightmap struct
 struct Lightmap {
