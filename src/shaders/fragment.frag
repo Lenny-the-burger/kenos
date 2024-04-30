@@ -4,8 +4,9 @@
 
 out vec4 FragColor;
 
-uniform int debug_id;
+in vec3 worldPos;
 
+uniform int debug_id;
 
 void main()
 {
@@ -17,12 +18,17 @@ void main()
 	//vec3 mat_col = lm.diffuseColor.xyz;
 
 	// Assuming depth value is in range [0, 1]
-    float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in variable
+    float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in 
 
 	depth *= 10.0f;
 
-    // Output the depth value as grayscale
+	Triangle test_prim = get_primitive(979);
 
+	bool is_within = point_in_triangle(worldPos, test_prim);
+
+	float is_within_mult = is_within ? 1.0 : 0.0;
+
+	// Debugging
 	if (gl_PrimitiveID == debug_id) {
 		// Set to a purple grid for debugging
 		FragColor = vec4(DEBUG_COLOR * 
@@ -33,5 +39,5 @@ void main()
 
 	float debug_dot = mat.emissive_strength;
 
-    FragColor = vec4(mat_col * depth * debug_dot, 1.0);
+    FragColor = vec4(mat_col * depth * debug_dot * is_within_mult, 1.0);
 }

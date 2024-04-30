@@ -71,16 +71,6 @@ layout(std430, binding = 3) buffer LightmapBuffer {
 
 // ========================= FUNCTIONS =========================
 
-float plane_sdf(vec3 origin, vec3 normal, vec3 point) {
-	return dot(point - origin, normal);
-}
-
-bool point_in_triangle(vec3 point, Triangle triangle) {
-	return plane_sdf(triangle.v0, triangle.in_norm0, point) <= 0.0 &&
-		   plane_sdf(triangle.v1, triangle.in_norm1, point) <= 0.0 &&
-		   plane_sdf(triangle.v2, triangle.in_norm2, point) <= 0.0;
-}
-
 // Function to calculate vertex position from index
 vec3 getVertexPosition(int index) {
     int baseIndex = index * 3; // Each vertex has 3 components
@@ -109,4 +99,14 @@ Triangle get_primitive(int index) {
 	prim.in_norm2 = normalize(cross(prim.v2 - prim.v0, prim.normal));
 
 	return prim;
+}
+
+float plane_sdf(vec3 origin, vec3 normal, vec3 point) {
+	return dot(point - origin, normal);
+}
+
+bool point_in_triangle(vec3 point, Triangle triangle) {
+	return plane_sdf(triangle.v0, triangle.in_norm0, point) >= 0.0 &&
+		   plane_sdf(triangle.v1, triangle.in_norm1, point) >= 0.0 &&
+		   plane_sdf(triangle.v2, triangle.in_norm2, point) >= 0.0;
 }

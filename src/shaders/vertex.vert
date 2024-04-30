@@ -5,10 +5,14 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+out vec3 worldPos;
+
 void main()
 {
     vec4 vin = vec4(aPos, 1.0);
     vin = model * vin;
+
+    worldPos = vin.xyz;
 
     // Apply view matrix
     vin = view * vin;
