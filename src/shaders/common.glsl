@@ -127,12 +127,12 @@ vec4 debug_shader(vec3 point, Triangle surface) {
 	// convert to local coordinates of triangle
 	vec3 point_local = vec3(
 		plane_sdf(surface.mean, surface.right, point),
-		plane_sdf(surface.mean, surface.up, point),
-		plane_sdf(surface.mean, surface.normal, point)
+		plane_sdf(surface.mean, surface.left, point),
+		plane_sdf(surface.mean, surface.up, point)
 	);
 
 	return vec4(DEBUG_COLOR * 
-		(sin(point_local.y * GRID_SHADER_SIZE) > cos(point_local.z * GRID_SHADER_SIZE) ? 1.0 : 0.0),
+		(sin(point_local.x * GRID_SHADER_SIZE) > cos(point_local.y * GRID_SHADER_SIZE) ? 1.0 : 0.0),
 		1.0);
 }
 

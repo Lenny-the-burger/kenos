@@ -15,9 +15,7 @@ void main()
 	// Debugging
 	if (gl_PrimitiveID == debug_id) {
 		// Set to a purple grid for debugging
-		FragColor = vec4(DEBUG_COLOR * 
-			(sin(worldPos.x * GRID_SHADER_SIZE) > cos(worldPos.z * GRID_SHADER_SIZE) ? 1.0 : 0.0),
-			1.0);
+		FragColor = debug_shader(worldPos, tri);
 		return;
 	}
 
