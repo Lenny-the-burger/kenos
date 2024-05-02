@@ -33,11 +33,11 @@ void main()
 
 	float debug_dot = mat.emissive_strength;
 
-    //FragColor = vec4(mat_col * depth * debug_dot * is_within_mult, 1.0);
+    FragColor = vec4(mat_col * depth * debug_dot, 1.0);
 
 	vec3 tempOrg = vec3(0.0, 0.0, 0.0);
 
-	float testval = FRDF_gauss_adj(distance(worldPos, tempOrg), 0, 1);
+	float testval = plane_sdf(tri.mean, tri.right, worldPos);
 
-	FragColor = vec4(vec3(testval), 1.0);
+	//FragColor = vec4(vec3(testval), 1.0);
 }

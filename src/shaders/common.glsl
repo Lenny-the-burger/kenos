@@ -122,8 +122,9 @@ Triangle get_primitive(int index) {
 	return prim;
 }
 
+// o-p might be the other way around
 float plane_sdf(vec3 origin, vec3 normal, vec3 point) {
-	return dot(point - origin, normal);
+	return dot(origin - point, normal);
 }
 
 bool point_in_triangle(vec3 point, Triangle triangle) {
@@ -132,7 +133,10 @@ bool point_in_triangle(vec3 point, Triangle triangle) {
 		   plane_sdf(triangle.v2, triangle.in_norm2, point) >= 0.0;
 }
 
-// FIXME: doesnt work 
+vec3 project_onto_plane(vec3 point, Triangle triangle) {
+	return point + (plane_sdf(triangle.mean, triangle.normal, point) * triangle.normal);
+}
+
 vec4 debug_shader(vec3 point, Triangle surface) {
 	// convert to local coordinates of triangle
 	vec3 point_local = vec3(
@@ -163,4 +167,25 @@ float FRDF_gauss_adj(float smple, float mean, float stdev) {
 	float a2 = (pow(abs(a), 3)) / (10.0 + pow(a, 4));
 
 	return FRDF_gauss(smple, mean, stdev) + a2;
+}
+
+uniform int convolution_samples; // this should be multiple of 2
+uniform float convolution_distance_mult;
+uniform float convolution_smaple_scale;
+
+int convolution_samples_side = convolution_samples - (convolution_samples/2);
+
+// Convolve the frdf with the rdf of given triangle
+float convolve(vec3 point, Triangle caster) {
+
+    // This should ideally just be a monte carlo integration but random samples
+	// at very low samples look bad so a square works better in this case
+	float total = 0.0;
+	for (int xi = -convolution_samples_side; xi < convolution_samples_side; xi++) {
+		for (int yi = -convolution_samples_side; yi < convolution_samples_side; yi++) {
+			vec3 sample_point = vec3(0,0,0);
+		}
+	}
+
+	return total;
 }
