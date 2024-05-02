@@ -11,12 +11,22 @@ uniform float debug_grid_size_uniform;
 
 // ========================= STRUCTS =========================
 
-// Define the layout of the Lightmap struct
 struct Lightmap {
-    vec4 ambientColor;
-    vec4 diffuseColor;
-    vec4 specularColor;
-    // Add other properties as needed
+    int numLights;
+    int lightIndex;
+
+    int padding[2];
+};
+
+struct Light {
+	int casterIndex;
+	vec3 color;
+	float brightness;
+
+    int numShadows;
+    int shadowIndex;
+
+    int padding;
 };
 
 // Define the layout of the Material struct

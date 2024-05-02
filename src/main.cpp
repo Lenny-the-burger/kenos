@@ -24,7 +24,6 @@ using json = nlohmann::json;
 
 #include "loader.h"
 
-
 int WINDOW_WIDTH = 1200;
 int WINDOW_HEIGHT = 900;
 
@@ -55,10 +54,21 @@ static glm::vec3 camera_lookat = glm::vec3(0.0f, 0.0f, 4.0f);
 
 // Lightmap struct
 struct Lightmap {
-    glm::vec4 ambientColor;
-    glm::vec4 diffuseColor;
-    glm::vec4 specularColor;
-    // Add other properties as needed
+    int numLights;
+    int lightIndex;
+
+    int padding[2];
+};
+
+struct Light {
+	int casterIndex;
+	glm::vec3 color;
+	float brightness;
+
+    int numShadows;
+    int shadowIndex;
+
+    int padding;
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -184,7 +194,44 @@ int main() {
     Shader raster_shader("shaders/vertex.vert", "shaders/fragment.frag", shader_includes, 460);
     ComputeShader compute_shader_frame("shaders/compute_frame.comp", shader_includes, 460);
 
-    // set up index and vertex buffers
+    /* WHAT EACH BUFFER IS USED FOR:
+    * 0: Monolithic vertex buffer
+    *  This buffer is indexed into by the index buffer and is equal to # of verices * 3 in the 
+    *  scene. This buffer is bound normally as a VBO, but also as a SSBO to be acessible in later
+    *  stages.
+    * 
+    * 1: Monolithic index buffer
+    *  This buffer stores indeces into the vertex buffer. This buffer is bound normally as a EBO,
+    *  but also as a SSBO to be acessible in later stages.
+    * 
+    * 2: Material buffer
+    *  This buffer stores material information for each primitive in the scene. This buffer is
+    *  only written to once by the cpu and is then read by several stages. Stores all the information
+    *  about the material of the primitive, such as color, reflectivity, etc. This should eventually be
+    *  changed to a per-object buffer to save space.
+    * 
+    * 3: Lightmap buffer
+    *   This buffer stores the lightmap for each primitive in the scene. This buffer is written
+    *   exclusevly to by the compute shader, so we dont need to initialize it here. This buffer stores
+    *   the lighmap of each primitve in the scene, and contains the number of lights on the primitive, 
+    *   the shadows, and the index into the lights and shadows buffers.
+    * 
+    * 4: Lights buffer
+    *   This buffer stores all the lights in the scene. This buffer is written exclusevly to by the 
+    *   compute shader, so we dont need to initialize it here. This buffer holds light structs which 
+    *   describe every bounce of light in the scene. It is not symmetrical and size variable so lightmaps
+    *   need to store an integer index and number of lights.
+    * 
+    * 5: Shadows buffer
+    *   This buffer is identical in function to the lights buffer, except that the index information is
+    *   stored by lights. This buffer also only holds ints to save space and we dont need that much more
+    *   for shadows.
+    * 
+    */
+
+
+    // ==================== VERTEX AND INDEX BUFFER ====================
+
     int num_vertices = scene_loader.get_num_vertices();
     int num_indices = scene_loader.get_num_indices();
 
@@ -230,6 +277,8 @@ int main() {
     // anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
 
+    // ==================== MATERIAL BUFFER ====================
+
     // set up material buffer ssbo
     Material* materials;
 
@@ -243,6 +292,7 @@ int main() {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, material_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, material_ssbo); // for now all geometry is static
 
+    // ==================== LIGHTMAP BUFFER ====================
 
     // We dont need to initilize lightmaps since we will write to them in the compute shader
 
@@ -254,6 +304,12 @@ int main() {
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Lightmap) * num_lightmaps, nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, lightmap_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo); // for now all geometry is static
+
+    // ==================== LIGHTS BUFFER ====================
+
+
+
+    // ==================== END BUFFERS SECTION ====================
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
