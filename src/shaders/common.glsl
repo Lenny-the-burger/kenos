@@ -178,14 +178,43 @@ int convolution_samples_side = convolution_samples - (convolution_samples/2);
 // Convolve the frdf with the rdf of given triangle
 float convolve(vec3 point, Triangle caster) {
 
+	int convolution_samples_side = convolution_samples - (convolution_samples/2);
+
+	// This should probably be in the loop
+	float frag_dist = convolution_distance_mult * plane_sdf(point, caster);
+
+	vec3 point_flat = project_onto_plane(point, caster);
+
     // This should ideally just be a monte carlo integration but random samples
 	// at very low samples look bad so a square works better in this case
 	float total = 0.0;
 	for (int xi = -convolution_samples_side; xi < convolution_samples_side; xi++) {
 		for (int yi = -convolution_samples_side; yi < convolution_samples_side; yi++) {
-			vec3 sample_point = vec3(0,0,0);
+
+			// this used to need to be 2d, but now both the clipping and frdf can be done
+			// in 3d mostly thanks to sdfs even though this is a 2d convolution
+			vec3 sample_point = caster.mean;
+			sample_point += xi * caster.right * convolution_smaple_scale * (1.0 / float(convolution_samples));
+			sample_point += yi * caster.left *  convolution_smaple_scale * (1.0 / float(convolution_samples));
+
+			bool in_triangle = point_in_triangle(sample_point, caster);
+			if (!in_triangle) {
+				continue;
+			}
+
+			float sample_frdf = FRDF_gauss_adj(distance(sample_point, point_flat), frag_dist, 0.0);
+			// Has to be squared since we are doing only one calculation for two directions at once
+			sample_frdf = pow(sample_frdf, 2.0);
+
+			// Should be the distance of the sample point instead
+			sample_frdf *= 1.0 / pow(frag_dist, 2.0);
+
+			total += sample_frdf;
 		}
 	}
+
+	// You might think that total should be averaged, but ti shouldnt since ideally we would
+	// be able to take lim->inf samples 
 
 	return total;
 }
