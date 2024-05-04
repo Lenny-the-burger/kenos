@@ -93,8 +93,10 @@ vec3 getVertexPosition(int index) {
     return vec3(vertices[baseIndex], vertices[baseIndex + 1], vertices[baseIndex + 2]);
 }
 
+// !! THIS FILE SHOULD NOT BE INCLUDED INTO THE VERTEX SHADER !!
+uniform mat4 model;
 
-// Get the primitive at the given index
+// Get the primitive at the given index !! slow !!
 Triangle get_primitive(int index) {
 	int baseIndex = index * 3; // Each primitive has 3 vertices
 	int vertexIndex1 = indices[baseIndex];
@@ -105,6 +107,12 @@ Triangle get_primitive(int index) {
 	prim.v0 = getVertexPosition(vertexIndex1);
 	prim.v1 = getVertexPosition(vertexIndex2);
 	prim.v2 = getVertexPosition(vertexIndex3);
+
+	// Transform the vertices by the model matrix
+	// Im sure i can do this in a faster way in the vertex shader but this is fine for now
+	prim.v0 = (model * vec4(prim.v0, 1.0)).xyz;
+	prim.v1 = (model * vec4(prim.v1, 1.0)).xyz;
+	prim.v2 = (model * vec4(prim.v2, 1.0)).xyz;
 
     prim.mean = (prim.v0 + prim.v1 + prim.v2) / 3.0;
     prim.normal = normalize(cross(prim.v1 - prim.v0, prim.v2 - prim.v0));
@@ -127,10 +135,16 @@ float plane_sdf(vec3 origin, vec3 normal, vec3 point) {
 	return dot(origin - point, normal);
 }
 
+// im lazy
+float plane_sdf(vec3 point, Triangle triangle) {
+	return plane_sdf(triangle.mean, triangle.normal, point);
+}
+
+// This should be > 0 idk why it only works when it the opposite
 bool point_in_triangle(vec3 point, Triangle triangle) {
-	return plane_sdf(triangle.v0, triangle.in_norm0, point) >= 0.0 &&
-		   plane_sdf(triangle.v1, triangle.in_norm1, point) >= 0.0 &&
-		   plane_sdf(triangle.v2, triangle.in_norm2, point) >= 0.0;
+	return plane_sdf(triangle.v0, triangle.in_norm0, point) <= 0.0 &&
+		   plane_sdf(triangle.v1, triangle.in_norm1, point) <= 0.0 &&
+		   plane_sdf(triangle.v2, triangle.in_norm2, point) <= 0.0;
 }
 
 vec3 project_onto_plane(vec3 point, Triangle triangle) {
@@ -152,7 +166,7 @@ vec4 debug_shader(vec3 point, Triangle surface) {
 
 // Gaussian approximation for the free ray distribution function of 
 // a perfectly lambertian BRDF.
-float FRDF_gauss(float smple, float mean, float stdev) {
+float FRDF_gauss(float smple, float stdev, float mean) {
 	return exp(
 		-(pow(smple - mean, 2.0) / (2.0 * pow(stdev, 2.0)))
 	);
@@ -160,20 +174,18 @@ float FRDF_gauss(float smple, float mean, float stdev) {
 
 // Gaussian approximation for the FRDF but different to make it look more 
 // accurate (thanks stole) see: https://www.desmos.com/calculator/8k36ti44zx
-float FRDF_gauss_adj(float smple, float mean, float stdev) {
+float FRDF_gauss_adj(float smple, float stdev, float mean) {
 	// What a and a2 here are isnt important they are just random equations
 	// that happen to make the function look more accurate.
 	float a  = (1.0 / stdev) * (smple - mean);
 	float a2 = (pow(abs(a), 3)) / (10.0 + pow(a, 4));
 
-	return FRDF_gauss(smple, mean, stdev) + a2;
+	return FRDF_gauss(smple, stdev, mean) + a2;
 }
 
 uniform int convolution_samples; // this should be multiple of 2
 uniform float convolution_distance_mult;
 uniform float convolution_smaple_scale;
-
-int convolution_samples_side = convolution_samples - (convolution_samples/2);
 
 // Convolve the frdf with the rdf of given triangle
 float convolve(vec3 point, Triangle caster) {
@@ -217,4 +229,17 @@ float convolve(vec3 point, Triangle caster) {
 	// be able to take lim->inf samples 
 
 	return total;
+}
+
+// Calculate the solid angle of a triangle from a point
+float solid_angle(vec3 point, Triangle triangle) {
+	vec3 v0 = normalize(triangle.v0 - point);
+	vec3 v1 = normalize(triangle.v1 - point);
+	vec3 v2 = normalize(triangle.v2 - point);
+	vec3 vmean = normalize(triangle.mean - point);
+
+	float solid = min(min(dot(vmean, v0), dot(vmean, v0)), dot(vmean, v0));
+	solid = 2.0 * acos(solid);
+
+	return solid;
 }

@@ -39,9 +39,16 @@ std::string SCENE_FILE = "assets/cornell_box.json";
 #pragma region IMGUI_VALS
 static float updown = -0.2f;
 static float FOV = 45.0f;
+
 static int debug_id = 0;
 static int debug_id_max = 512;
 static float debug_grid_size = 0.05f;
+
+static int convolution_samples = 4; // this should be multiple of 2
+static float convolution_distance_mult = 0.8f;
+static float convolution_smaple_scale = 0.5f;
+
+static float test_brightness = 0.1f;
 
 #pragma endregion
 
@@ -104,6 +111,9 @@ void draw_ui() {
         return;
     }
     ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+    
+	// increase default spacing for better readability
+	//ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
 #pragma region UI
     // UI starts here
@@ -121,6 +131,16 @@ void draw_ui() {
 
     ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
     ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
+
+	ImGui::Spacing();
+
+	// Convolution
+	ImGui::Text("Convolution options");
+	ImGui::SliderInt("Samples", &convolution_samples, 2, 10);
+	ImGui::SliderFloat("Distance mult", &convolution_distance_mult, 0.0f, 1.0f);
+	ImGui::SliderFloat("Sample scale", &convolution_smaple_scale, 0.0f, 5.0f);
+
+	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
     
 
 
@@ -180,7 +200,7 @@ int main() {
     FOV = scene_info.camera_fov;
 
     // set debug id max (amount of primitives)
-    debug_id_max = scene_loader.get_num_indices() / 3;
+    debug_id_max = (scene_loader.get_num_indices() / 3) - 1;
 
 
     // Set the viewport
@@ -385,6 +405,21 @@ int main() {
 
             unsigned int debugGridSizeLoc = glGetUniformLocation(raster_shader.ID, "debug_grid_size_uniform");
             glUniform1f(debugGridSizeLoc, debug_grid_size);
+        }
+
+        {   // Set misc ui controlled uniforms
+			unsigned int convolutionSamplesLoc = glGetUniformLocation(raster_shader.ID, "convolution_samples");
+			glUniform1i(convolutionSamplesLoc, convolution_samples);
+
+			unsigned int convolutionDistanceMultLoc = glGetUniformLocation(raster_shader.ID, "convolution_distance_mult");
+			glUniform1f(convolutionDistanceMultLoc, convolution_distance_mult);
+
+			unsigned int convolutionSampleScaleLoc = glGetUniformLocation(raster_shader.ID, "convolution_smaple_scale");
+			glUniform1f(convolutionSampleScaleLoc, convolution_smaple_scale);
+
+			unsigned int testBrightnessLoc = glGetUniformLocation(raster_shader.ID, "test_brightness");
+			glUniform1f(testBrightnessLoc, test_brightness);
+
         }
 
 #pragma endregion
