@@ -8,6 +8,8 @@ in vec3 worldPos;
 
 uniform int debug_id;
 
+uniform float test_brightness;
+
 void main()
 {
 	Triangle tri = get_primitive(gl_PrimitiveID);
@@ -16,6 +18,12 @@ void main()
 	if (gl_PrimitiveID == debug_id) {
 		// Set to a purple grid for debugging
 		FragColor = debug_shader(worldPos, tri);
+		return;
+	}
+
+	// early exit for test emissive surfaces
+	if (gl_PrimitiveID == 979 || gl_PrimitiveID == 978) {
+		FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 		return;
 	}
 
@@ -33,11 +41,18 @@ void main()
 
 	float debug_dot = mat.emissive_strength;
 
-    FragColor = vec4(mat_col * depth * debug_dot, 1.0);
+    //FragColor = vec4(mat_col * depth * debug_dot, 1.0);
 
-	vec3 tempOrg = vec3(0.0, 0.0, 0.0);
+	Triangle test_prim = get_primitive(979);
 
-	float testval = plane_sdf(tri.mean, tri.right, worldPos);
+	float testval = convolve(worldPos, test_prim);
 
-	//FragColor = vec4(vec3(testval), 1.0);
+	test_prim = get_primitive(978);
+
+	testval += convolve(worldPos, test_prim);
+
+	testval *= test_brightness;
+
+	FragColor = vec4(vec3(testval), 1.0);
+	//FragColor = vec4(mat_col * testval, 1.0);
 }
