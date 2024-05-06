@@ -85,6 +85,14 @@ layout(std430, binding = 3) buffer LightmapBuffer {
     Lightmap lightmaps[];
 };
 
+layout(std430, binding = 4) buffer LightBuffer {
+	Light lights[];
+};
+
+layout(std430, binding = 5) buffer ShadowBuffer {
+	int shadows[];
+};
+
 // ========================= FUNCTIONS =========================
 
 // Function to calculate vertex position from index

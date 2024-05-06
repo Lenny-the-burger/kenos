@@ -29,6 +29,11 @@ int WINDOW_HEIGHT = 900;
 
 float PI = 3.14159265359f;
 
+#define NUM_LIGHTS_PER_PRIMITIVE 5
+
+// this can be large because shadows are just stored as single ints
+#define NUM_SHADOWS_PER_PRIMITIVE 10
+
 float aspect_ratio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
 bool should_update_aspect_ratio = true; // optimization to avoid updating aspect ratio every frame
 
@@ -142,6 +147,8 @@ void draw_ui() {
 
 	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
     
+	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 900);
+
 
 
 #pragma endregion
@@ -323,10 +330,36 @@ int main() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Lightmap) * num_lightmaps, nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, lightmap_ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo); // for now all geometry is static
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightmap_ssbo);
 
     // ==================== LIGHTS BUFFER ====================
 
+	// We dont need to initilize lights since we will write to them in the compute shader
+
+	int num_lights = scene_loader.get_num_primitives() * NUM_LIGHTS_PER_PRIMITIVE;
+
+	unsigned int lights_ssbo;   
+	glGenBuffers(1, &lights_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lights_ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Light) * num_lights, nullptr, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, lights_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lights_ssbo);
+
+	// ==================== SHADOWS BUFFER ====================
+
+	// We dont need to initilize shadows since we will write to them in the compute shader
+
+    // The number of shadows is pretty random in a scene but will generally depend on
+    // the number of primitives. 10 times the number of prims doesnt mean that each
+	// prim will have 10 shadows, but that overall there will be 10 shadows per prim
+	int num_shadows = scene_loader.get_num_primitives() * NUM_SHADOWS_PER_PRIMITIVE;
+
+	unsigned int shadows_ssbo;
+	glGenBuffers(1, &shadows_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, shadows_ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int)* num_shadows, nullptr, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, shadows_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, shadows_ssbo);
 
 
     // ==================== END BUFFERS SECTION ====================
