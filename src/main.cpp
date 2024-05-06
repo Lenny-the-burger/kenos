@@ -55,6 +55,8 @@ static float convolution_smaple_scale = 0.5f;
 
 static float test_brightness = 0.1f;
 
+static int shadow_test_max = 100;
+
 #pragma endregion
 
 Loader scene_loader = Loader();
@@ -146,9 +148,9 @@ void draw_ui() {
 	ImGui::SliderFloat("Sample scale", &convolution_smaple_scale, 0.0f, 5.0f);
 
 	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
-    
-	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 900);
 
+	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 900);
+    
 
 
 #pragma endregion
@@ -452,6 +454,9 @@ int main() {
 
 			unsigned int testBrightnessLoc = glGetUniformLocation(raster_shader.ID, "test_brightness");
 			glUniform1f(testBrightnessLoc, test_brightness);
+
+			unsigned int shadowTestMaxLoc = glGetUniformLocation(raster_shader.ID, "shadow_test_max"); 
+			glUniform1i(shadowTestMaxLoc, shadow_test_max); 
 
         }
 

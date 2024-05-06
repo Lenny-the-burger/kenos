@@ -10,6 +10,8 @@ uniform int debug_id;
 
 uniform float test_brightness;
 
+uniform int shadow_test_max;
+
 void main()
 {
 	Triangle tri = get_primitive(gl_PrimitiveID);
@@ -52,6 +54,23 @@ void main()
 	testval += convolve(worldPos, test_prim);
 
 	testval *= test_brightness;
+
+	// shadow test
+	test_prim = get_primitive(979);
+	
+	// what % obscured is the currect fragment
+	float shadow = 0.0;
+	Triangle shadow_tri;
+
+	for (int i = 0; i < shadow_test_max; i++) {
+		shadow_tri = get_primitive(i);
+		shadow += conic_shadow(worldPos, test_prim, shadow_tri);
+		//shadow += shadow_tri.v0.x;
+	}
+
+	shadow = clamp(shadow, 0.0, 1.0);
+
+	testval *= 1.0 - shadow;
 
 	FragColor = vec4(vec3(testval), 1.0);
 	//FragColor = vec4(mat_col * testval, 1.0);

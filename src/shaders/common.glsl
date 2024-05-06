@@ -219,6 +219,7 @@ float convolve(vec3 point, Triangle caster) {
 
 			bool in_triangle = point_in_triangle(sample_point, caster);
 			if (!in_triangle) {
+				// This branch only reduces fps by 1 so whatever
 				continue;
 			}
 
@@ -239,6 +240,9 @@ float convolve(vec3 point, Triangle caster) {
 	return total;
 }
 
+// All the solid angle math is form here: https://www.desmos.com/geometry/gbiivkbluo
+// its 2d but i think its the same in 3d
+
 // Calculate the solid angle of a triangle from a point
 float solid_angle(vec3 point, Triangle triangle) {
 	vec3 v0 = normalize(triangle.v0 - point);
@@ -250,4 +254,39 @@ float solid_angle(vec3 point, Triangle triangle) {
 	solid = 2.0 * acos(solid);
 
 	return solid;
+}
+
+// Get the angle of the two normals of two triangles in relation to a point.
+// This is used whenever any solid angle math is done with two triangles
+// !! this is not exactly that do not use this as the actual angle its fucked up !!
+float get_nang(vec3 point, Triangle a, Triangle b) {
+	vec3 a2mean =  normalize(a.mean - point);
+	vec3 b2mean =  normalize(b.mean - point);
+
+	return 2.0 * acos(dot(a2mean, b2mean));
+}
+
+bool do_overlap(vec3 point, Triangle a, Triangle b) {
+	float solid_a = solid_angle(point, a);
+	float solid_b = solid_angle(point, b);
+	float nang = get_nang(point, a, b);
+
+	return nang < solid_a + solid_b;
+}
+
+// Compute conic (solid angle) shadows of a caster and a shadower. 
+// Returns 0->1 shadowed %
+float conic_shadow(vec3 point, Triangle caster, Triangle shadower) {
+	float solid_c = solid_angle(point, caster);
+	float solid_s = solid_angle(point, shadower);
+	float nang = get_nang(point, caster, shadower);
+
+	// Are we in totality or do we need to "shift" the two angles
+	float shift_does_matter = nang + solid_s > solid_c ? 1.0 : 0.0;
+
+	float shift_offset = ((nang + solid_s) - solid_c) / 2.0;
+
+	float shadowed = (solid_s - (shift_does_matter * shift_offset)) / solid_c;
+
+	return clamp(shadowed, 0.0, 1.0);
 }
