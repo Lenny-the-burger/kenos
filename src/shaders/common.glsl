@@ -9,6 +9,8 @@ uniform float debug_grid_size_uniform;
 #define GRID_SHADER_SIZE 1.0 / debug_grid_size_uniform
 #define DEBUG_COLOR vec3(1.0, 0.0, 1.0)
 
+#define EPSILON 0.0001
+
 // ========================= STRUCTS =========================
 
 struct Lightmap {
@@ -296,18 +298,24 @@ float conic_shadow(vec3 point, Triangle caster, Triangle shadower) {
 	return clamp(shadowed, 0.0, 1.0);
 }
 
+// Function to calculate vertex position from index
+vec3 getVertexPositionLOD(int index) {
+    int baseIndex = index * 3; // Each vertex has 3 components
+    return vec3(lod_vertices[baseIndex], lod_vertices[baseIndex + 1], lod_vertices[baseIndex + 2]);
+}
+
 // Point in triangle shadow. Gets stuff from buffers by itself so we dont have
 // to create an entire Triangle struct every time.
 bool point_in_triangle_shadow(vec3 point, vec3 light_norm, int shadow_idx) {
 	// get triangle verts
 	int baseIndex = shadow_idx * 3; // Each primitive has 3 vertices
-	int vertexIndex1 = indices[baseIndex];
-	int vertexIndex2 = indices[baseIndex + 1];
-	int vertexIndex3 = indices[baseIndex + 2];
+	int vertexIndex1 = lod_indices[baseIndex];
+	int vertexIndex2 = lod_indices[baseIndex + 1];
+	int vertexIndex3 = lod_indices[baseIndex + 2];
 
-	vec3 t0 = getVertexPosition(vertexIndex1);
-	vec3 t1 = getVertexPosition(vertexIndex2);
-	vec3 t2 = getVertexPosition(vertexIndex3);
+	vec3 t0 = getVertexPositionLOD(vertexIndex1);
+	vec3 t1 = getVertexPositionLOD(vertexIndex2);
+	vec3 t2 = getVertexPositionLOD(vertexIndex3);
 
 	vec3 tnorm = normalize(cross(t1 - t0, t2 - t0));
 	
@@ -315,12 +323,6 @@ bool point_in_triangle_shadow(vec3 point, vec3 light_norm, int shadow_idx) {
 	if (dot(tnorm, light_norm) < 0.0) {
 		return false;
 	}
-
-	// test values
-//	vec3 t0 = vec3(0.0, 0.0, 0.0);
-//	vec3 t1 = vec3(1.0, 0.0, 0.0);
-//	vec3 t2 = vec3(0.0, 1.0, 0.0);
-
 
 	// Transform the vertices by the model matrix
 	// Im sure i can do this in a faster way in the vertex shader but this is fine for now
@@ -340,5 +342,8 @@ bool point_in_triangle_shadow(vec3 point, vec3 light_norm, int shadow_idx) {
 	// Make sure we are above the triangle
 	float d4 = plane_sdf(t0, tnorm, point);
 
-	return d0 <= 0.0 && d1 <= 0.0 && d2 <= 0.0 && d4 <= 0.01;
+	return  d0 <= EPSILON && 
+			d1 <= EPSILON && 
+			d2 <= EPSILON && 
+			d4 <= EPSILON;
 }

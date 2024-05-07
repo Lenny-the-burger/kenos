@@ -55,7 +55,7 @@ static float convolution_smaple_scale = 0.5f;
 
 static float test_brightness = 0.1f;
 
-static int shadow_test_max = 100;
+static int shadow_test_max = 85;
 
 #pragma endregion
 
@@ -149,7 +149,7 @@ void draw_ui() {
 
 	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
 
-	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 968);
+	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 85);
     
 
 
