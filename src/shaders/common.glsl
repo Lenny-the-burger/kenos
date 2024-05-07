@@ -304,6 +304,40 @@ vec3 getVertexPositionLOD(int index) {
     return vec3(lod_vertices[baseIndex], lod_vertices[baseIndex + 1], lod_vertices[baseIndex + 2]);
 }
 
+// Get the lod primitive at the given index !! slow !!
+Triangle get_lod_primitive(int index) {
+	int baseIndex = index * 3; // Each primitive has 3 vertices
+	int vertexIndex1 = lod_indices[baseIndex];
+	int vertexIndex2 = lod_indices[baseIndex + 1];
+	int vertexIndex3 = lod_indices[baseIndex + 2];
+
+	Triangle prim;
+	prim.v0 = getVertexPositionLOD(vertexIndex1);
+	prim.v1 = getVertexPositionLOD(vertexIndex2);
+	prim.v2 = getVertexPositionLOD(vertexIndex3);
+
+	// Transform the vertices by the model matrix
+	// Im sure i can do this in a faster way in the vertex shader but this is fine for now
+	prim.v0 = (model * vec4(prim.v0, 1.0)).xyz;
+	prim.v1 = (model * vec4(prim.v1, 1.0)).xyz;
+	prim.v2 = (model * vec4(prim.v2, 1.0)).xyz;
+
+	prim.mean = (prim.v0 + prim.v1 + prim.v2) / 3.0;
+	prim.normal = normalize(cross(prim.v1 - prim.v0, prim.v2 - prim.v0));
+
+	// Calculate interior wall normals
+	prim.in_norm0 = normalize(cross(prim.v0 - prim.v1, prim.normal));
+	prim.in_norm1 = normalize(cross(prim.v1 - prim.v2, prim.normal));
+	prim.in_norm2 = normalize(cross(prim.v2 - prim.v0, prim.normal));
+
+	// Calculate relative axes
+	prim.up = prim.normal;
+	prim.right = prim.in_norm0;
+	prim.left = cross(prim.in_norm0, prim.normal);
+
+	return prim;
+}
+
 // Point in triangle shadow. Gets stuff from buffers by itself so we dont have
 // to create an entire Triangle struct every time.
 bool point_in_triangle_shadow(vec3 point, vec3 light_norm, int shadow_idx) {
