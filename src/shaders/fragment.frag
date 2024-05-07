@@ -60,17 +60,23 @@ void main()
 	
 	// what % obscured is the currect fragment
 	float shadow = 0.0;
-	Triangle shadow_tri;
+
+	vec3 light_dir = vec3(0, -1, 0);
+
+	// get all the vertices we need for shadows at once (hard coded for now)
+
+	int s_indeces[2904];
+	float s_vertices[5904];
+
 
 	for (int i = 0; i < shadow_test_max; i++) {
-		shadow_tri = get_primitive(i);
-		shadow += conic_shadow(worldPos, test_prim, shadow_tri);
-		//shadow += shadow_tri.v0.x;
+		shadow += point_in_triangle_shadow(worldPos, light_dir, i) ? 1.0 : 0.0;
 	}
 
-	shadow = clamp(shadow, 0.0, 1.0);
+	// If any more than one of the potential shadowers block the point then we are shadowed
+	shadow = 1 - clamp(shadow, 0.0, 0.5);
 
-	testval *= 1.0 - shadow;
+	testval *= shadow;
 
 	FragColor = vec4(vec3(testval), 1.0);
 	//FragColor = vec4(mat_col * testval, 1.0);

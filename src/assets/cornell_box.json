@@ -1,7 +1,7 @@
 {
   "sceneName": "Cornell box",
   "sceneDescription": "A Cornell box with a monke and a light",
-  "meshes": [ "assets/monke.obj", "assets/plane.obj"],
+  "meshes": [ "assets/monke.obj", "assets/plane.obj", "assets/monke_lod.obj" ],
   "materials": [
     {
       "name": "glossy",
@@ -38,10 +38,15 @@
     {
       "name": "monke",
       "mesh": "assets/monke.obj",
+      "lodMesh": "assets/monke_lod.obj",
       "material": "diffuseWhite",
       "position": [ 0, 1, 0 ],
       "rotation": [ 0, 3.1415, 0 ],
-      "scale": [ 1, 1, 1 ]
+      "scale": [ 1, 1, 1 ],
+
+      "lodPosition": [ 0, 0, 0 ],
+      "lodScale": [ 1, 1, 1 ],
+      "lodRotation": [ 0, 0, 0 ]
     },
     {
       "name": "floor",

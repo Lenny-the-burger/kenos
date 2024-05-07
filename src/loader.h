@@ -51,8 +51,10 @@ struct Scene_information {
 
 struct Scene_object {
 	int mesh_index;
+	int lod_mesh_index;
 	int material_index;
 	glm::mat4 transform;
+	glm::mat4 lod_transform;
 	std::string name;
 };
 
@@ -65,6 +67,12 @@ public:
 
 	// Load a json scene file !! may take a while !!
 	void load_scene(const std::string& filepath);
+
+	// Get the scene information
+	Scene_information get_scene_info() { return scene_info; }
+
+
+
 
 	// Get the vertices of the monobuffer
 	float* get_vertices() { return all_vertices; }
@@ -80,8 +88,22 @@ public:
 
 	int get_num_primitives() { return num_materials; } // one material per primitive
 
-	// Get the scene information
-	Scene_information get_scene_info() { return scene_info; }
+
+
+
+	// Get the vertices of the lod monobuffer
+	float* get_lod_vertices() { return all_lod_vertices; }
+	int get_num_lod_vertices() { return num_lod_vertices; }
+
+	// Get the indices of the lod monobuffer
+	int* get_lod_indices() { return all_lod_indices; }
+	int get_num_lod_indices() { return num_lod_indices; }
+
+	// Get the per primitive material properties
+	Material* get_lod_materials() { return all_lod_materials; }
+	int get_num_lod_materials() { return num_lod_materials; }
+
+	int get_num_lod_primitives() { return num_lod_materials; } // one material per primitive
 
 private:
 	std::vector<Mesh> loaded_meshes;
@@ -97,6 +119,8 @@ private:
 	// Map that goes from material name to material index
 	std::map<std::string, int> material_name_to_index;
 
+	// Monobuffer
+
 	float* all_vertices;
 	int num_vertices;
 
@@ -106,4 +130,14 @@ private:
 	Material* all_materials;
 	int num_materials;
 
+	// lod monobuffer
+
+	float* all_lod_vertices;
+	int num_lod_vertices;
+
+	int* all_lod_indices;
+	int num_lod_indices;
+
+	Material* all_lod_materials;
+	int num_lod_materials;
 };

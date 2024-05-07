@@ -57,6 +57,8 @@ void Loader::load_scene(const std::string& filepath)
 	}
 
 	// 4. Load meshes
+	// this also loads lodMeshes like regular meshes. The only difference is how scene objects
+	// refernce them.
 	for (string mesh : data["meshes"]) {
 
 		// check if the mesh file exists
@@ -131,7 +133,32 @@ void Loader::load_scene(const std::string& filepath)
 		new_object.transform = glm::rotate(new_object.transform, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 		new_object.transform = glm::scale(new_object.transform, scale);
 		
-		
+		// see if the object has a lodMesh and set it
+		if (object.find("lodMesh") != object.end()) {
+			new_object.lod_mesh_index = mesh_name_to_index[object["lodMesh"]];
+
+			// read and construct lod transform
+			glm::vec3 lod_rotation = glm::vec3(object["lodRotation"][0], object["lodRotation"][1], object["lodRotation"][2]);
+			glm::vec3 lod_scale = glm::vec3(object["lodScale"][0], object["lodScale"][1], object["lodScale"][2]);
+			glm::vec3 lod_position = glm::vec3(object["lodPosition"][0], object["lodPosition"][1], object["lodPosition"][2]);
+
+			// lod position is parented to the regular position
+			lod_position += position;
+
+			new_object.lod_transform = glm::mat4(1.0f);
+			new_object.lod_transform = glm::translate(new_object.lod_transform, lod_position);
+			new_object.lod_transform = glm::rotate(new_object.lod_transform, lod_rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+			new_object.lod_transform = glm::rotate(new_object.lod_transform, lod_rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+			new_object.lod_transform = glm::rotate(new_object.lod_transform, lod_rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+			new_object.lod_transform = glm::scale(new_object.lod_transform, lod_scale);
+		}
+		else {
+			// else set it to the same as the regular mesh
+			new_object.lod_mesh_index = new_object.mesh_index;
+
+			// transform same as regular mesh
+			new_object.lod_transform = new_object.transform;
+		}
 
 		scene_objects.push_back(new_object);
 	}
@@ -207,4 +234,80 @@ void Loader::load_scene(const std::string& filepath)
 	for (int i = 0; i < temp_materials.size(); i++) {
 		all_materials[i] = temp_materials[i];
 	}
+
+
+	// 7. now do the same thing but for the lod meshes
+	// This is a bit of a copy paste but we only call it twice with different names each time
+	// so it should be fine
+	// Loop over all the scene objects and add thew meshes to the vertex and index buffers
+	num_lod_vertices = 0;
+	num_lod_indices = 0;
+	num_lod_materials = 0;
+
+	// Temporary vectors to store stuff, these are later converted to c arrays
+	vector<glm::vec3> temp_lod_vertices;
+	vector<glm::ivec3> temp_lod_indices;
+	vector<Material> temp_lod_materials;
+
+	for (Scene_object& object : scene_objects) {
+		// can probably use insert() here but we need to modify the vertices and build materials
+		// so probably not
+
+		// append all the vertices to the vertex buffer
+		for (int i = 0; i < loaded_meshes[object.lod_mesh_index].vertices.size(); i++) {
+			// vertex has to be transformed before adding to the buffer
+			glm::vec4 vertex = glm::vec4(loaded_meshes[object.lod_mesh_index].vertices[i], 1.0f);
+
+			vertex = object.lod_transform * vertex;
+
+			temp_lod_vertices.push_back(glm::vec3(vertex.x, vertex.y, vertex.z));
+		}
+
+		// Go through ech tri, add the vertex indices and create a per primitive material
+		// We could avoid storing stuff like material per primitive if we had some sort of
+		// "range hash map" that makes it easy to go from primid to object id, but i dont
+		// know of any better way than just storing a 1:1 look up table so it wont save that
+		// much mem anyway. Until there is a better way we do this boowomp
+
+		// Div the number by 3 because we want to iterate per triangle
+		for (int i = 0; i < loaded_meshes[object.lod_mesh_index].indices.size(); i++) {
+			// When we add indeces, they should be offset by the previous number of vertices
+			temp_lod_indices.push_back(loaded_meshes[object.lod_mesh_index].indices[i] + glm::ivec3(num_lod_vertices));
+
+			// Add the material
+			temp_lod_materials.push_back(loaded_materials[object.material_index]);
+		}
+
+		// These are updated after the object are processed as during the loop we assume these
+		// represent the numbers of completed 
+		num_lod_vertices = temp_lod_vertices.size();
+		num_lod_indices = temp_lod_indices.size();
+		num_lod_materials = temp_lod_materials.size();
+	}
+
+	// Multiply verts and indxs by 3 since we store them as vec3 and ivec3
+	num_lod_vertices *= 3;
+	num_lod_indices *= 3;
+
+	// Convert the vectors to c arrays
+	all_lod_vertices = new float[num_lod_vertices];
+	all_lod_indices = new int[num_lod_indices];
+	all_lod_materials = new Material[num_lod_materials];
+
+	for (int i = 0; i < temp_lod_vertices.size(); i++) {
+		all_lod_vertices[i * 3 + 0] = temp_lod_vertices[i].x;
+		all_lod_vertices[i * 3 + 1] = temp_lod_vertices[i].y;
+		all_lod_vertices[i * 3 + 2] = temp_lod_vertices[i].z;
+	}
+
+	for (int i = 0; i < temp_lod_indices.size(); i++) {
+		all_lod_indices[i * 3 + 0] = temp_lod_indices[i].x;
+		all_lod_indices[i * 3 + 1] = temp_lod_indices[i].y;
+		all_lod_indices[i * 3 + 2] = temp_lod_indices[i].z;
+	}
+
+	for (int i = 0; i < temp_lod_materials.size(); i++) {
+		all_lod_materials[i] = temp_lod_materials[i];
+	}
+
 }

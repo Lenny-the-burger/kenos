@@ -153,5 +153,8 @@
     <Object Include="src\assets\cube.obj">
       <Filter>Assets</Filter>
     </Object>
+    <Object Include="src\assets\monke_lod.obj">
+      <Filter>Assets</Filter>
+    </Object>
   </ItemGroup>
 </Project>

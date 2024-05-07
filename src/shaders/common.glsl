@@ -59,23 +59,17 @@ struct Triangle {
 
 // ========================= BUFFERS =========================
 
-/**
- * ==== Vertex/Index buffers ====
- */
+// ==== Vertex/Index buffers ====
 
-// Define a buffer to hold vertices
 layout(std430, binding = 0) buffer VertexBuffer {
     float vertices[];
 };
 
-// Define a buffer to hold indices of vertices
 layout(std430, binding = 1) buffer IndexBuffer {
     int indices[];
 };
 
-/**
- * ==== SSBOs ====
- */
+// ==== SSBOs ====
 
 layout(std430, binding = 2) buffer MaterialBuffer {
 	Material material_buffer[];
@@ -92,6 +86,17 @@ layout(std430, binding = 4) buffer LightBuffer {
 layout(std430, binding = 5) buffer ShadowBuffer {
 	int shadows[];
 };
+
+// ==== LOD v/i buffers ====
+
+layout(std430, binding = 6) buffer LODVertexBuffer {
+	float lod_vertices[];
+};
+
+layout(std430, binding = 7) buffer LODIndexBuffer {
+	int lod_indices[];
+};
+
 
 // ========================= FUNCTIONS =========================
 
@@ -289,4 +294,51 @@ float conic_shadow(vec3 point, Triangle caster, Triangle shadower) {
 	float shadowed = (solid_s - (shift_does_matter * shift_offset)) / solid_c;
 
 	return clamp(shadowed, 0.0, 1.0);
+}
+
+// Point in triangle shadow. Gets stuff from buffers by itself so we dont have
+// to create an entire Triangle struct every time.
+bool point_in_triangle_shadow(vec3 point, vec3 light_norm, int shadow_idx) {
+	// get triangle verts
+	int baseIndex = shadow_idx * 3; // Each primitive has 3 vertices
+	int vertexIndex1 = indices[baseIndex];
+	int vertexIndex2 = indices[baseIndex + 1];
+	int vertexIndex3 = indices[baseIndex + 2];
+
+	vec3 t0 = getVertexPosition(vertexIndex1);
+	vec3 t1 = getVertexPosition(vertexIndex2);
+	vec3 t2 = getVertexPosition(vertexIndex3);
+
+	vec3 tnorm = normalize(cross(t1 - t0, t2 - t0));
+	
+	// backface
+	if (dot(tnorm, light_norm) < 0.0) {
+		return false;
+	}
+
+	// test values
+//	vec3 t0 = vec3(0.0, 0.0, 0.0);
+//	vec3 t1 = vec3(1.0, 0.0, 0.0);
+//	vec3 t2 = vec3(0.0, 1.0, 0.0);
+
+
+	// Transform the vertices by the model matrix
+	// Im sure i can do this in a faster way in the vertex shader but this is fine for now
+	t0 = (model * vec4(t0, 1.0)).xyz;
+	t1 = (model * vec4(t1, 1.0)).xyz;
+	t2 = (model * vec4(t2, 1.0)).xyz;
+
+	// Turns out we dont even need to normalize these
+	vec3 in_norm0 = cross(t0 - t1, light_norm);
+	vec3 in_norm1 = cross(t1 - t2, light_norm);
+	vec3 in_norm2 = cross(t2 - t0, light_norm);
+
+	float d0 = plane_sdf(t0, in_norm0, point);
+	float d1 = plane_sdf(t1, in_norm1, point);
+	float d2 = plane_sdf(t2, in_norm2, point);
+
+	// Make sure we are above the triangle
+	float d4 = plane_sdf(t0, tnorm, point);
+
+	return d0 <= 0.0 && d1 <= 0.0 && d2 <= 0.0 && d4 <= 0.01;
 }

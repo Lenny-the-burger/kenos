@@ -149,7 +149,7 @@ void draw_ui() {
 
 	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
 
-	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 900);
+	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 968);
     
 
 
@@ -256,6 +256,13 @@ int main() {
     *   stored by lights. This buffer also only holds ints to save space and we dont need that much more
     *   for shadows.
     * 
+	* 6: Lod vertex buffer
+	*    This buffer stores the vertex data for the lod mesh. This buffer is set up the same way as buffer
+    *    0, but is not bound as a VBO.
+    * 
+	* 7: Lod index buffer
+	*    This buffer stores the index data for the lod mesh. This buffer is set up the same way as buffer
+	*    1, but is not bound as a EBO.
     */
 
 
@@ -363,6 +370,33 @@ int main() {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, shadows_ssbo);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, shadows_ssbo);
 
+	// ==================== LOD VERTEX AND INDEX BUFFER ====================
+    // I shoud really bind these to locations 2 and 3 but i dont want to change numbers in 3 different
+	// places
+
+	int num_lod_vertices = scene_loader.get_num_lod_vertices();
+	int num_lod_indices = scene_loader.get_num_lod_indices();
+
+	float* lod_vertices = new float[num_lod_vertices];
+	int* lod_indices = new int[num_lod_indices];
+
+	lod_vertices = scene_loader.get_lod_vertices();
+	lod_indices = scene_loader.get_lod_indices();
+
+	// Dont need any vbos and ebos just bind them stright to ssbos
+	unsigned int lod_verts_ssbo, lod_indices_ssbo;
+
+	glGenBuffers(1, &lod_verts_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lod_verts_ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float)* num_lod_vertices, lod_vertices, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, lod_verts_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lod_verts_ssbo);
+
+	glGenBuffers(1, &lod_indices_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lod_indices_ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int)* num_lod_indices, lod_indices, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, lod_indices_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lod_indices_ssbo);
 
     // ==================== END BUFFERS SECTION ====================
 
@@ -374,7 +408,7 @@ int main() {
         // We have to compute the scene first
 #pragma region COMPUTE
 
-        int workGroupSize = 64; // !! THIS HAS TO MATCH THE WORK GROUP SIZE IN THE COMPUTE SHADER !!
+        int workGroupSize = 64; // ! THIS HAS TO MATCH THE WORK GROUP SIZE IN THE COMPUTE SHADER !
 
         int num_primitives = scene_loader.get_num_primitives();
         
@@ -457,7 +491,6 @@ int main() {
 
 			unsigned int shadowTestMaxLoc = glGetUniformLocation(raster_shader.ID, "shadow_test_max"); 
 			glUniform1i(shadowTestMaxLoc, shadow_test_max); 
-
         }
 
 #pragma endregion
