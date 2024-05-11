@@ -11,6 +11,11 @@ uniform float debug_grid_size_uniform;
 
 #define EPSILON 0.0001
 
+uniform int KS_NUM_PRIMITIVES;
+uniform int KS_NUM_LOD_PRIMITIVES;
+
+#define NUM_LIGHTS_PER_PRIMITIVE 10
+
 // ========================= STRUCTS =========================
 
 struct Lightmap {
@@ -78,15 +83,15 @@ layout(std430, binding = 2) buffer MaterialBuffer {
 };
 
 layout(std430, binding = 3) buffer LightmapBuffer {
-    Lightmap lightmaps[];
+    Lightmap lightmap_buffer[];
 };
 
 layout(std430, binding = 4) buffer LightBuffer {
-	Light lights[];
+	Light lights_buffer[];
 };
 
 layout(std430, binding = 5) buffer ShadowBuffer {
-	int shadows[];
+	int shadows_buffer[];
 };
 
 // ==== LOD v/i buffers ====

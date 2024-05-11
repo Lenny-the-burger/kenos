@@ -161,6 +161,76 @@ void draw_ui() {
 #endif
 }
 
+// Set uniforms for given shader id since several shaders use the same uniforms
+void set_uniforms(unsigned int shader_id) {
+	{   // Set global engine uniforms
+        unsigned int numPrimsLoc = glGetUniformLocation(shader_id, "KS_NUM_PRIMITIVES");
+        glUniform1i(numPrimsLoc, scene_loader.get_num_primitives());
+
+        unsigned int numLodPrimsLoc = glGetUniformLocation(shader_id, "KS_NUM_LOD_PRIMITIVES");
+        glUniform1i(numLodPrimsLoc, scene_loader.get_num_lod_primitives());
+    }
+
+    {   // Set the model matrix
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(0.0f, updown, 0.0f));
+
+        // rotate around the y axis 180 because i messed up the model
+        transform = glm::rotate(transform, PI, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        unsigned int transformLoc = glGetUniformLocation(shader_id, "model");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+    }
+
+    {   // Set the view matrix
+        glm::mat4 view = glm::mat4(1.0f);
+        view = glm::lookAt(camera_pos, camera_lookat, camera_up);
+
+        unsigned int viewLoc = glGetUniformLocation(shader_id, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    }
+
+    {   // Set the projection matrix
+        glm::mat4 projection = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(FOV), aspect_ratio, 0.1f, 100.0f);
+
+        unsigned int projectionLoc = glGetUniformLocation(shader_id, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    }
+
+    // Check if aspect ratio has changed and update it
+    if (should_update_aspect_ratio) {
+        // This is handled by the projection matrix so won't be needed until i do
+        // optimize that since we set it every frame right now
+        should_update_aspect_ratio = false;
+    }
+
+    {   // Set the debug id
+        unsigned int debugLoc = glGetUniformLocation(shader_id, "debug_id");
+        glUniform1i(debugLoc, debug_id);
+
+        unsigned int debugGridSizeLoc = glGetUniformLocation(shader_id, "debug_grid_size_uniform");
+        glUniform1f(debugGridSizeLoc, debug_grid_size);
+    }
+
+    {   // Set misc ui controlled uniforms
+        unsigned int convolutionSamplesLoc = glGetUniformLocation(shader_id, "convolution_samples");
+        glUniform1i(convolutionSamplesLoc, convolution_samples);
+
+        unsigned int convolutionDistanceMultLoc = glGetUniformLocation(shader_id, "convolution_distance_mult");
+        glUniform1f(convolutionDistanceMultLoc, convolution_distance_mult);
+
+        unsigned int convolutionSampleScaleLoc = glGetUniformLocation(shader_id, "convolution_smaple_scale");
+        glUniform1f(convolutionSampleScaleLoc, convolution_smaple_scale);
+
+        unsigned int testBrightnessLoc = glGetUniformLocation(shader_id, "test_brightness");
+        glUniform1f(testBrightnessLoc, test_brightness);
+
+        unsigned int shadowTestMaxLoc = glGetUniformLocation(shader_id, "shadow_test_max");
+        glUniform1i(shadowTestMaxLoc, shadow_test_max);
+    }
+}
+
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -221,7 +291,7 @@ int main() {
 
     // Create shaders
     Shader raster_shader("shaders/vertex.vert", "shaders/fragment.frag", shader_includes, 460);
-    ComputeShader compute_shader_frame("shaders/compute_frame.comp", shader_includes, 460);
+    ComputeShader compute_shader_frame_init("shaders/compute_frame_init.comp", shader_includes, 460);
 
     /* WHAT EACH BUFFER IS USED FOR:
     * 0: Monolithic vertex buffer
@@ -414,7 +484,10 @@ int main() {
         
         compute_shader_frame.use();
 
-        int numWorkGroups = (num_primitives + workGroupSize - 1) / workGroupSize;
+        compute_shader_frame_init.use();
+		set_uniforms(compute_shader_frame_init.ID);
+
+        // Dispatch one group for each caster
         glDispatchCompute(numWorkGroups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -434,24 +507,7 @@ int main() {
         // draw our first triangle
         raster_shader.use();
 
-        {   // Set the model matrix
-            glm::mat4 transform = glm::mat4(1.0f);
-            transform = glm::translate(transform, glm::vec3(0.0f, updown, 0.0f));
-
-            // rotate around the y axis 180 because i messed up the model
-            transform = glm::rotate(transform, PI, glm::vec3(0.0f, 1.0f, 0.0f));
-
-            unsigned int transformLoc = glGetUniformLocation(raster_shader.ID, "model");
-            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-        }
-
-        {   // Set the view matrix
-            glm::mat4 view = glm::mat4(1.0f);
-            view = glm::lookAt(camera_pos, camera_lookat, camera_up);
-
-            unsigned int viewLoc = glGetUniformLocation(raster_shader.ID, "view");
-            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        }
+		set_uniforms(raster_shader.ID);
 
         {   // Set the projection matrix
             glm::mat4 projection = glm::mat4(1.0f);
@@ -498,7 +554,6 @@ int main() {
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time 
-
 
         // Draw Dear ImGui
         ImGui::Render();
