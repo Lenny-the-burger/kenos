@@ -39,7 +39,8 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
 			}
 			catch (std::ifstream::failure& e)
 			{
-				std::cout << "ERROR::SHADER::INCLUDE_FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+                std::cout << "ERROR::SHADER::INCLUDE_FILE_NOT_SUCCESSFULLY_READ: " << e.what() << "\n";
+                std::cout << "Filename: " << include << std::endl;
 			}
 		}
 
@@ -50,7 +51,8 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
     }
     catch (std::ifstream::failure& e)
     {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << "\n";
+        std::cout << "Filename: " << shaderPath << "\n" << std::endl;
     }
     const char* cShaderCode = shaderCode.c_str();
     // 2. compile shaders
@@ -59,12 +61,12 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
     compute = glCreateShader(GL_COMPUTE_SHADER);
     glShaderSource(compute, 1, &cShaderCode, NULL);
     glCompileShader(compute);
-    checkCompileErrors(compute, "COMPUTE");;
+	checkCompileErrors(compute, "COMPUTE", shaderPath);
     // shader Program
     ID = glCreateProgram();
     glAttachShader(ID, compute);
     glLinkProgram(ID);
-    checkCompileErrors(ID, "PROGRAM");
+    checkCompileErrors(ID, "PROGRAM", shaderPath);
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(compute);
 }
@@ -91,7 +93,7 @@ void ComputeShader::setFloat(const std::string& name, float value) const
 
 // utility function for checking shader compilation/linking errors.
 // ------------------------------------------------------------------------
-void ComputeShader::checkCompileErrors(unsigned int shader, std::string type)
+void ComputeShader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
 {
     int success;
     char infoLog[1024];
@@ -101,7 +103,9 @@ void ComputeShader::checkCompileErrors(unsigned int shader, std::string type)
         if (!success)
         {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n";
+			std::cout << "Filename: " << filename << "\n\n";
+            std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
     }
     else
@@ -110,7 +114,9 @@ void ComputeShader::checkCompileErrors(unsigned int shader, std::string type)
         if (!success)
         {
             glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n";
+            std::cout << "Filename: " << filename << "\n\n";
+            std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
     }
 }
