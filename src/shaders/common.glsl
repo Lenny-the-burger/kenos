@@ -26,8 +26,8 @@ struct Lightmap {
 };
 
 struct Light {
-	int casterIndex;
 	vec3 tint;
+	int casterIndex;
 
 	float prevDist;
 	int ogCaster;

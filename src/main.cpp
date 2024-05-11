@@ -75,8 +75,8 @@ struct Lightmap {
 };
 
 struct Light {
+    glm::vec3 tint;
 	int casterIndex;
-	glm::vec3 tint;
 
     float prevDist;
     int ogCaster;

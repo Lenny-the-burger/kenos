@@ -41,28 +41,25 @@ void main()
 
 	depth *= 10.0f;
 
-	float debug_dot = mat.emissive_strength;
-
     //FragColor = vec4(mat_col * depth * debug_dot, 1.0);
 
-	Triangle test_prim = get_primitive(979);
+	int light_idx_offset = NUM_LIGHTS_PER_PRIMITIVE * gl_PrimitiveID;
+	float light_intensity = 0.0;
 
-	float testval = convolve(worldPos, test_prim);
+	for (int light_idx = 0; light_idx < lm.numLights; light_idx++) {
+		Light cur_light = lights_buffer[light_idx_offset + light_idx];
+		Triangle c_prim = get_primitive(cur_light.casterIndex);
 
-	test_prim = get_primitive(978);
+		// also add the previous distance in the future
+		light_intensity += convolve(worldPos, c_prim);
+	}
 
-	testval += convolve(worldPos, test_prim);
-
-	testval *= test_brightness;
-
-	// shadow test
-	test_prim = get_primitive(979);
+	light_intensity *= test_brightness;
 	
 	// what % obscured is the currect fragment
 	float shadow = 0.0;
 
 	vec3 light_dir = vec3(0, -1, 0);
-
 
 	for (int i = 0; i < shadow_test_max; i++) {
 		shadow += point_in_triangle_shadow(worldPos, light_dir, i) ? 1.0 : 0.0;
@@ -71,12 +68,8 @@ void main()
 	// If any more than one of the potential shadowers block the point then we are shadowed
 	shadow = 1 - clamp(shadow, 0.0, 0.5);
 
-	testval *= shadow;
+	light_intensity *= shadow;
 
-	float numlights = float(lightmap_buffer[gl_PrimitiveID].numLights) / 10.0;
-
-	testval = numlights;
-
-	FragColor = vec4(vec3(testval), 1.0);
+	FragColor = vec4(vec3(light_intensity), 1.0);
 	//FragColor = vec4(mat_col * testval, 1.0);
 }
