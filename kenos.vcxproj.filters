@@ -49,7 +49,7 @@
     <None Include="src\assets\test_scene.json">
       <Filter>Assets</Filter>
     </None>
-    <None Include="src\shaders\compute_frame.comp">
+    <None Include="src\shaders\compute_frame_init.comp">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="kenos.cap">

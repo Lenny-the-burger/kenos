@@ -27,13 +27,12 @@ struct Lightmap {
 
 struct Light {
 	int casterIndex;
-	vec3 color;
-	float brightness;
+	vec3 tint;
 
-    int numShadows;
-    int shadowIndex;
+	float prevDist;
+	int ogCaster;
 
-    int padding;
+    int padding[2];
 };
 
 // Define the layout of the Material struct

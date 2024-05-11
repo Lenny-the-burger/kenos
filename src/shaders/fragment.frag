@@ -31,7 +31,7 @@ void main()
 
 	// get material from the ssbo
 	Material mat = material_buffer[gl_PrimitiveID];
-	Lightmap lm = lightmaps[gl_PrimitiveID];
+	Lightmap lm = lightmap_buffer[gl_PrimitiveID];
 
 	vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
 	//vec3 mat_col = lm.diffuseColor.xyz;
@@ -63,11 +63,6 @@ void main()
 
 	vec3 light_dir = vec3(0, -1, 0);
 
-	// get all the vertices we need for shadows at once (hard coded for now)
-
-	int s_indeces[2904];
-	float s_vertices[5904];
-
 
 	for (int i = 0; i < shadow_test_max; i++) {
 		shadow += point_in_triangle_shadow(worldPos, light_dir, i) ? 1.0 : 0.0;
@@ -77,6 +72,10 @@ void main()
 	shadow = 1 - clamp(shadow, 0.0, 0.5);
 
 	testval *= shadow;
+
+	float numlights = float(lightmap_buffer[gl_PrimitiveID].numLights) / 10.0;
+
+	testval = numlights;
 
 	FragColor = vec4(vec3(testval), 1.0);
 	//FragColor = vec4(mat_col * testval, 1.0);

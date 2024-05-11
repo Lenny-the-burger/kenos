@@ -29,7 +29,7 @@ int WINDOW_HEIGHT = 900;
 
 float PI = 3.14159265359f;
 
-#define NUM_LIGHTS_PER_PRIMITIVE 5
+#define NUM_LIGHTS_PER_PRIMITIVE 10
 
 // this can be large because shadows are just stored as single ints
 #define NUM_SHADOWS_PER_PRIMITIVE 10
@@ -76,13 +76,12 @@ struct Lightmap {
 
 struct Light {
 	int casterIndex;
-	glm::vec3 color;
-	float brightness;
+	glm::vec3 tint;
 
-    int numShadows;
-    int shadowIndex;
+    float prevDist;
+    int ogCaster;
 
-    int padding;
+	int padding[2];
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -415,6 +414,8 @@ int main() {
 
 	// We dont need to initilize lights since we will write to them in the compute shader
 
+    // for now we squarly have a max of 10 lights per prim and do a regular array with no
+    // funky indexing
 	int num_lights = scene_loader.get_num_primitives() * NUM_LIGHTS_PER_PRIMITIVE;
 
 	unsigned int lights_ssbo;   
@@ -479,10 +480,10 @@ int main() {
 #pragma region COMPUTE
 
         int workGroupSize = 64; // ! THIS HAS TO MATCH THE WORK GROUP SIZE IN THE COMPUTE SHADER !
-
-        int num_primitives = scene_loader.get_num_primitives();
+        int num_comp_shaders = scene_loader.get_num_primitives();
+        int numWorkGroups = (num_comp_shaders + workGroupSize - 1) / workGroupSize;
         
-        compute_shader_frame.use();
+
 
         compute_shader_frame_init.use();
 		set_uniforms(compute_shader_frame_init.ID);
@@ -508,46 +509,6 @@ int main() {
         raster_shader.use();
 
 		set_uniforms(raster_shader.ID);
-
-        {   // Set the projection matrix
-            glm::mat4 projection = glm::mat4(1.0f);
-            projection = glm::perspective(glm::radians(FOV), aspect_ratio, 0.1f, 100.0f);
-
-            unsigned int projectionLoc = glGetUniformLocation(raster_shader.ID, "projection");
-            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-        }
-
-        // Check if aspect ratio has changed and update it
-        if (should_update_aspect_ratio) {
-			// This is handled by the projection matrix so won't be needed until i do
-            // optimize that since we set it every frame right now
-			should_update_aspect_ratio = false;
-		}
-
-        {   // Set the debug id
-			unsigned int debugLoc = glGetUniformLocation(raster_shader.ID, "debug_id");
-			glUniform1i(debugLoc, debug_id);
-
-            unsigned int debugGridSizeLoc = glGetUniformLocation(raster_shader.ID, "debug_grid_size_uniform");
-            glUniform1f(debugGridSizeLoc, debug_grid_size);
-        }
-
-        {   // Set misc ui controlled uniforms
-			unsigned int convolutionSamplesLoc = glGetUniformLocation(raster_shader.ID, "convolution_samples");
-			glUniform1i(convolutionSamplesLoc, convolution_samples);
-
-			unsigned int convolutionDistanceMultLoc = glGetUniformLocation(raster_shader.ID, "convolution_distance_mult");
-			glUniform1f(convolutionDistanceMultLoc, convolution_distance_mult);
-
-			unsigned int convolutionSampleScaleLoc = glGetUniformLocation(raster_shader.ID, "convolution_smaple_scale");
-			glUniform1f(convolutionSampleScaleLoc, convolution_smaple_scale);
-
-			unsigned int testBrightnessLoc = glGetUniformLocation(raster_shader.ID, "test_brightness");
-			glUniform1f(testBrightnessLoc, test_brightness);
-
-			unsigned int shadowTestMaxLoc = glGetUniformLocation(raster_shader.ID, "shadow_test_max"); 
-			glUniform1i(shadowTestMaxLoc, shadow_test_max); 
-        }
 
 #pragma endregion
 

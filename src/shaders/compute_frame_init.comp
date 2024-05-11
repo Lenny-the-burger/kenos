@@ -1,0 +1,85 @@
+// !! do not specify version in the shader this is done by the compiler !!
+// This file includes common.glsl during compilation
+#line 4
+
+layout(local_size_x = 64) in;
+
+void main() {
+    // ====== Variable format: ======
+    // c_ prefix for caster related variables, e.g. c_prim would be the triangle that is 
+    //     casting light.
+    // r_ prefix for receiver related variables, e.g. r_prim would be the triangle that is
+    //     receiving light.
+    // s_ prefix for shadow related variables, e.g. s_prim would be the triangle that is
+    //     casting a shadow from the caster onto the receiver.
+    // ==============================
+
+    // Loop over every potential caster and see if it affects us
+
+    int r_primitiveID = int(gl_GlobalInvocationID.x);
+
+    Triangle r_prim = get_primitive(r_primitiveID);
+    Material r_mat = material_buffer[r_primitiveID];
+
+    // If we are an emissive surface we dont do anything on initial pass
+    if (r_mat.emissive_strength > 0) {
+		return;
+	}
+
+    // Initial pass so we throw everything away
+    Lightmap r_lightmap;
+    r_lightmap.numLights = 0;
+    
+    for (int c_primitiveID = 0; c_primitiveID <= KS_NUM_PRIMITIVES; c_primitiveID++) {
+        if (c_primitiveID == r_primitiveID) {
+			continue;
+		}
+
+		Material c_mat = material_buffer[c_primitiveID];
+
+        // initial pass: unless caster is part of the initially emissive set we ignore it
+        if (c_mat.emissive_strength == 0) {
+			continue;
+		}
+
+        Triangle c_prim = get_primitive(c_primitiveID);
+
+        // we have identified a potential caster now make sure that we are
+        // not behind it. We cannot just throw out casters if we are facing the same way because
+        // some part of it might still be visible
+        // occlusion will be implemeneted later.
+
+        // Has to be > 0 because i fucke dup
+        bool is0behind = plane_sdf(r_prim.v0, c_prim) < 0.0;
+        bool is1behind = plane_sdf(r_prim.v1, c_prim) < 0.0;
+        bool is2behind = plane_sdf(r_prim.v2, c_prim) < 0.0;
+
+        if (is0behind && is1behind && is2behind) {
+            continue;
+        }
+
+        Light newLight;
+        newLight.casterIndex = c_primitiveID;
+
+        newLight.tint = vec3(1.0, 1.0, 1.0); // no bounces so no tint yet
+
+        newLight.prevDist = 0.0;
+
+        newLight.ogCaster = c_primitiveID; // we are the original caster
+
+        int nextIdx = int(gl_GlobalInvocationID.x) * NUM_LIGHTS_PER_PRIMITIVE;
+        nextIdx += r_lightmap.numLights;
+
+        lights_buffer[nextIdx] = newLight;
+
+        r_lightmap.numLights++;
+
+        if (r_lightmap.numLights >= NUM_LIGHTS_PER_PRIMITIVE) {
+			break;
+		}
+        
+    }
+
+    lightmap_buffer[r_primitiveID] = r_lightmap;
+
+}
