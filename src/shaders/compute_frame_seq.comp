@@ -4,12 +4,13 @@
 
 layout(local_size_x = 64) in;
 
+uniform int KS_CUR_BOUNCE;
 
 // This is the main compute shader that does the ray tracing. There are two version, one that only
 // traces from E (initially emissive set), so only surfaces with an emissive material, and another that
 // only traces existing lightmaps. This just makes it way easier to deal with memory, logic, synch etc.
 
-// This version is the one that traces from the emissive set.
+// This version is the one that traces only from existin lightmaps, and can be called multiple times
 void main() {
     // ====== Variable format: ======
     // c_ prefix for caster related variables, e.g. c_prim would be the triangle that is 
@@ -24,30 +25,30 @@ void main() {
 
     int r_primitiveID = int(gl_GlobalInvocationID.x);
 
+    Lightmap r_lightmap = lightmap_buffer[r_primitiveID];
+
+    // if we already have enough lights we can skip this primitive
+    if (r_lightmap.numLights >= NUM_LIGHTS_PER_PRIMITIVE) {
+		return;
+    }
+
     Triangle r_prim = get_primitive(r_primitiveID);
     Material r_mat = material_buffer[r_primitiveID];
-
-    // If we are an emissive surface we dont do anything on initial pass
-    if (r_mat.emissive_strength > 0) {
-		return;
-	}
-
-    // Initial pass so we throw everything away
-    Lightmap r_lightmap;
-    r_lightmap.numLights = 0;
+    
     
     for (int c_primitiveID = 0; c_primitiveID <= KS_NUM_PRIMITIVES; c_primitiveID++) {
         if (c_primitiveID == r_primitiveID) {
 			continue;
 		}
 
-		Material c_mat = material_buffer[c_primitiveID];
+		Lightmap c_lightmap = lightmap_buffer[c_primitiveID];
 
-        // initial pass: unless caster is part of the initially emissive set we ignore it
-        if (c_mat.emissive_strength == 0) {
+        // unless the caster has >0 lights we can skip it
+        if (c_lightmap.numLights <= 0) {
 			continue;
 		}
 
+        Material c_mat = material_buffer[c_primitiveID];
         Triangle c_prim = get_primitive(c_primitiveID);
 
         // we have identified a potential caster now make sure that we are
@@ -64,28 +65,47 @@ void main() {
             continue;
         }
 
-        Light newLight;
-        newLight.casterIndex = c_primitiveID;
+        int light_idx_offset = NUM_LIGHTS_PER_PRIMITIVE * c_primitiveID;
 
-        newLight.tint = vec3(1.0, 1.0, 1.0); // no bounces so no tint yet
+        // Loop over every light and see if any of them should be traced onto us
+        for (int c_lightIdx = 0; c_lightIdx <= c_lightmap.numLights; c_lightIdx++) {
+            Light c_light = lights_buffer[light_idx_offset + c_lightIdx];
 
-        newLight.prevDist = 0.0;
+            // make sure we arent duplicating light
+            if (c_light.bounce != KS_CUR_BOUNCE - 1) {
+                continue;
+            }
 
-        newLight.bounce = 0;
+            Material c_mat = material_buffer[c_primitiveID];
 
-        newLight.ogCaster = c_primitiveID; // we are the original caster
+            Light newLight;
+            newLight.casterIndex = c_lightIdx;
+            newLight.bounce = KS_CUR_BOUNCE;
 
-        int nextIdx = int(gl_GlobalInvocationID.x) * NUM_LIGHTS_PER_PRIMITIVE;
-        nextIdx += r_lightmap.numLights;
+            // I should migrate colour to be a vec3
+            vec3 c_mat_col = vec3(c_mat.color_r, c_mat.color_g, c_mat.color_b);
+            newLight.tint = c_light.tint * c_mat_col;
 
-        lights_buffer[nextIdx] = newLight;
+            // Add previous distance for sequential convolution
+            newLight.prevDist = c_light.prevDist + pow(distance(r_prim.mean, c_prim.mean), 2);
 
-        r_lightmap.numLights++;
+            newLight.ogCaster = c_light.ogCaster; // never changes
+
+            int nextIdx = r_primitiveID * NUM_LIGHTS_PER_PRIMITIVE;
+            nextIdx += r_lightmap.numLights;
+
+            lights_buffer[nextIdx] = newLight;
+
+            r_lightmap.numLights++;
+
+            if (r_lightmap.numLights >= NUM_LIGHTS_PER_PRIMITIVE) {
+			    break;
+		    }
+        }
 
         if (r_lightmap.numLights >= NUM_LIGHTS_PER_PRIMITIVE) {
-			break;
-		}
-        
+            break;
+        }
     }
 
     lightmap_buffer[r_primitiveID] = r_lightmap;

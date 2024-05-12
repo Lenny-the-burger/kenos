@@ -32,6 +32,7 @@ float PI = 3.14159265359f;
 #define NUM_LIGHTS_PER_PRIMITIVE 10
 
 // this can be large because shadows are just stored as single ints
+// !! has to be synchronized with the definitionin common.glsl !!
 #define NUM_SHADOWS_PER_PRIMITIVE 10
 
 float aspect_ratio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
@@ -57,6 +58,10 @@ static float test_brightness = 0.1f;
 
 static int shadow_test_max = 85;
 
+static float test_light_col_r = 1.0f;
+static float test_light_col_g = 1.0f;
+static float test_light_col_b = 1.0f;
+
 #pragma endregion
 
 Loader scene_loader = Loader();
@@ -80,8 +85,9 @@ struct Light {
 
     float prevDist;
     int ogCaster;
+    int bounce;
 
-	int padding[2];
+	int padding;
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -149,7 +155,12 @@ void draw_ui() {
 	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
 
 	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 85);
-    
+
+	ImGui::Spacing();
+    ImGui::Text("Light options");
+	ImGui::SliderFloat("Light R", &test_light_col_r, 0.0f, 1.0f);
+	ImGui::SliderFloat("Light G", &test_light_col_g, 0.0f, 1.0f);
+	ImGui::SliderFloat("Light B", &test_light_col_b, 0.0f, 1.0f);
 
 
 #pragma endregion
@@ -227,6 +238,10 @@ void set_uniforms(unsigned int shader_id) {
 
         unsigned int shadowTestMaxLoc = glGetUniformLocation(shader_id, "shadow_test_max");
         glUniform1i(shadowTestMaxLoc, shadow_test_max);
+
+        // this one we need to put into a vec3
+		unsigned int testLightColRLoc = glGetUniformLocation(shader_id, "test_emit_col");
+		glUniform3f(testLightColRLoc, test_light_col_r, test_light_col_g, test_light_col_b);
     }
 }
 
@@ -291,6 +306,7 @@ int main() {
     // Create shaders
     Shader raster_shader("shaders/vertex.vert", "shaders/fragment.frag", shader_includes, 460);
     ComputeShader compute_shader_frame_init("shaders/compute_frame_init.comp", shader_includes, 460);
+	ComputeShader compute_shader_frame_seq("shaders/compute_frame_seq.comp", shader_includes, 460);
 
     /* WHAT EACH BUFFER IS USED FOR:
     * 0: Monolithic vertex buffer
@@ -482,8 +498,11 @@ int main() {
         int workGroupSize = 64; // ! THIS HAS TO MATCH THE WORK GROUP SIZE IN THE COMPUTE SHADER !
         int num_comp_shaders = scene_loader.get_num_primitives();
         int numWorkGroups = (num_comp_shaders + workGroupSize - 1) / workGroupSize;
-        
 
+		// should put this somewhere else
+        #define KS_MAX_BOUNCE 1
+
+		// ==================== Initial compute pass (bounce 0) ====================
 
         compute_shader_frame_init.use();
 		set_uniforms(compute_shader_frame_init.ID);
@@ -491,6 +510,23 @@ int main() {
         // Dispatch one group for each caster
         glDispatchCompute(numWorkGroups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		// ==================== Sequential compute pass (bounce 1+) ====================
+
+        compute_shader_frame_seq.use();
+        set_uniforms(compute_shader_frame_seq.ID); // why do we havfe to set it every time bruhh
+
+        // TODO: 
+		for (int bounce = 1; bounce <= KS_MAX_BOUNCE; bounce++) {
+			// Set the bounce number uniform
+            unsigned int curBounceLoc = glGetUniformLocation(compute_shader_frame_seq.ID, "KS_CUR_BOUNCE");
+            glUniform1i(curBounceLoc, bounce);
+			
+			// Dispatch one group for each caster
+			glDispatchCompute(numWorkGroups, 1, 1);
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		}
+
 
 
 #pragma endregion

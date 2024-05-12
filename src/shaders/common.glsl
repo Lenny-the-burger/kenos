@@ -14,6 +14,7 @@ uniform float debug_grid_size_uniform;
 uniform int KS_NUM_PRIMITIVES;
 uniform int KS_NUM_LOD_PRIMITIVES;
 
+// !! has to be synchronized with the definitionin common.glsl !!
 #define NUM_LIGHTS_PER_PRIMITIVE 10
 
 // ========================= STRUCTS =========================
@@ -31,8 +32,9 @@ struct Light {
 
 	float prevDist;
 	int ogCaster;
+	int bounce;
 
-    int padding[2];
+    int padding;
 };
 
 // Define the layout of the Material struct
@@ -207,12 +209,14 @@ uniform float convolution_distance_mult;
 uniform float convolution_smaple_scale;
 
 // Convolve the frdf with the rdf of given triangle
-float convolve(vec3 point, Triangle caster) {
+float convolve(vec3 point, Triangle caster, float prevdist) {
 
 	int convolution_samples_side = convolution_samples - (convolution_samples/2);
 
 	// This should probably be in the loop
 	float frag_dist = convolution_distance_mult * plane_sdf(point, caster);
+
+	frag_dist = sqrt(pow(frag_dist, 2.0) + prevdist);
 
 	vec3 point_flat = project_onto_plane(point, caster);
 

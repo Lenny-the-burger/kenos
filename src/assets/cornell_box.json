@@ -32,6 +32,12 @@
       "albedo": [ 0, 255, 0 ],
       "emissiveIntensity": 0,
       "roughness": 1
+    },
+    {
+      "name": "diffuseOrange",
+      "albedo": [ 255, 165, 0 ],
+      "emissiveIntensity": 0,
+      "roughness": 1
     }
   ],
   "objects": [
@@ -39,7 +45,7 @@
       "name": "monke",
       "mesh": "assets/monke.obj",
       "lodMesh": "assets/monke_lod.obj",
-      "material": "diffuseWhite",
+      "material": "diffuseOrange",
       "position": [ 0, 1, 0 ],
       "rotation": [ 0, 3.1415, 0 ],
       "scale": [ 1, 1, 1 ],

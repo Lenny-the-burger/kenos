@@ -12,6 +12,8 @@ uniform float test_brightness;
 
 uniform int shadow_test_max;
 
+uniform vec3 test_emit_col; // for testing emissive surfaces
+
 void main()
 {
 	Triangle tri = get_primitive(gl_PrimitiveID);
@@ -25,7 +27,7 @@ void main()
 
 	// early exit for test emissive surfaces
 	if (gl_PrimitiveID == 979 || gl_PrimitiveID == 978) {
-		FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+		FragColor = vec4(test_emit_col, 1.0);
 		return;
 	}
 
@@ -44,17 +46,22 @@ void main()
     //FragColor = vec4(mat_col * depth * debug_dot, 1.0);
 
 	int light_idx_offset = NUM_LIGHTS_PER_PRIMITIVE * gl_PrimitiveID;
-	float light_intensity = 0.0;
+	vec3 light_col = vec3(0.0);
 
 	for (int light_idx = 0; light_idx < lm.numLights; light_idx++) {
 		Light cur_light = lights_buffer[light_idx_offset + light_idx];
 		Triangle c_prim = get_primitive(cur_light.casterIndex);
 
+		Material og_mat = material_buffer[cur_light.ogCaster]; // get the original material of the light
+		vec3 og_col = vec3(og_mat.color_r, og_mat.color_g, og_mat.color_b);
+
 		// also add the previous distance in the future
-		light_intensity += convolve(worldPos, c_prim);
+		float probability = convolve(worldPos, c_prim, cur_light.prevDist);
+
+		light_col += mat_col * cur_light.tint * test_emit_col * probability;
 	}
 
-	light_intensity *= test_brightness;
+	light_col *= test_brightness;
 	
 	// what % obscured is the currect fragment
 	float shadow = 0.0;
@@ -68,8 +75,8 @@ void main()
 	// If any more than one of the potential shadowers block the point then we are shadowed
 	shadow = 1 - clamp(shadow, 0.0, 0.5);
 
-	light_intensity *= shadow;
+	light_col *= shadow;
 
-	FragColor = vec4(vec3(light_intensity), 1.0);
+	FragColor = vec4(light_col, 1.0);
 	//FragColor = vec4(mat_col * testval, 1.0);
 }
