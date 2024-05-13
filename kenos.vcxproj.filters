@@ -43,9 +43,6 @@
     <None Include="README.md">
       <Filter>Miscellaneous</Filter>
     </None>
-    <None Include="src\assets\cornell_box.json">
-      <Filter>Assets</Filter>
-    </None>
     <None Include="src\assets\test_scene.json">
       <Filter>Assets</Filter>
     </None>
@@ -63,6 +60,9 @@
     </None>
     <None Include="src\shaders\compute_frame_seq.comp">
       <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="src\assets\cornell_box.json">
+      <Filter>Assets</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

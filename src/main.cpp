@@ -58,9 +58,10 @@ static float test_brightness = 0.1f;
 
 static int shadow_test_max = 85;
 
-static float test_light_col_r = 1.0f;
-static float test_light_col_g = 1.0f;
-static float test_light_col_b = 1.0f;
+static float test_light_col[3] = { 1.0f, 1.0f, 1.0f };
+
+static float light_min_intensity = 0.1f;
+static float max_light_distance = 30.0f;
 
 #pragma endregion
 
@@ -87,7 +88,10 @@ struct Light {
     int ogCaster;
     int bounce;
 
-	int padding;
+    float thisIntensity;
+	float prevIntensity;
+
+	float padding[3];
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -158,9 +162,11 @@ void draw_ui() {
 
 	ImGui::Spacing();
     ImGui::Text("Light options");
-	ImGui::SliderFloat("Light R", &test_light_col_r, 0.0f, 1.0f);
-	ImGui::SliderFloat("Light G", &test_light_col_g, 0.0f, 1.0f);
-	ImGui::SliderFloat("Light B", &test_light_col_b, 0.0f, 1.0f);
+
+	ImGui::ColorEdit3("Test light color", (float*)&test_light_col);
+
+	ImGui::SliderFloat("Min light intensity", &light_min_intensity, 0.0f, 1.0f);
+	ImGui::SliderFloat("Max light distance", &max_light_distance, 0.0f, 30.0f);
 
 
 #pragma endregion
@@ -241,7 +247,13 @@ void set_uniforms(unsigned int shader_id) {
 
         // this one we need to put into a vec3
 		unsigned int testLightColRLoc = glGetUniformLocation(shader_id, "test_emit_col");
-		glUniform3f(testLightColRLoc, test_light_col_r, test_light_col_g, test_light_col_b);
+		glUniform3f(testLightColRLoc, test_light_col[0], test_light_col[1], test_light_col[2]);
+
+		unsigned int lightMinIntensityLoc = glGetUniformLocation(shader_id, "light_min_intensity");
+		glUniform1f(lightMinIntensityLoc, light_min_intensity);
+
+		unsigned int maxLightDistanceLoc = glGetUniformLocation(shader_id, "max_light_distance");
+		glUniform1f(maxLightDistanceLoc, max_light_distance);
     }
 }
 
