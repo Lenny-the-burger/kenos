@@ -20,6 +20,8 @@ uniform float max_light_distance;
 // !! has to be synchronized with the definitionin common.glsl !!
 #define NUM_LIGHTS_PER_PRIMITIVE 10
 
+float PI = 3.14159265359;
+
 // ========================= STRUCTS =========================
 
 struct Lightmap {
@@ -271,7 +273,7 @@ float solid_angle(vec3 point, Triangle triangle) {
 	vec3 v2 = normalize(triangle.v2 - point);
 	vec3 vmean = normalize(triangle.mean - point);
 
-	float solid = min(min(dot(vmean, v0), dot(vmean, v0)), dot(vmean, v0));
+	float solid = min(min(dot(vmean, v0), dot(vmean, v1)), dot(vmean, v2));
 	solid = 2.0 * acos(solid);
 
 	return solid;
