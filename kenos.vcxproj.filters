@@ -140,6 +140,9 @@
     <ClInclude Include="src\shader_compute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\engine_constants.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\assets\wall.jpg">

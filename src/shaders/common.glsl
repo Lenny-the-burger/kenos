@@ -9,18 +9,11 @@ uniform float debug_grid_size_uniform;
 #define GRID_SHADER_SIZE 1.0 / debug_grid_size_uniform
 #define DEBUG_COLOR vec3(1.0, 0.0, 1.0)
 
-#define EPSILON 0.0001
-
 uniform int KS_NUM_PRIMITIVES;
 uniform int KS_NUM_LOD_PRIMITIVES;
 
 uniform float light_min_intensity;
 uniform float max_light_distance;
-
-// !! has to be synchronized with the definitionin common.glsl !!
-#define NUM_LIGHTS_PER_PRIMITIVE 10
-
-float PI = 3.14159265359;
 
 // ========================= STRUCTS =========================
 

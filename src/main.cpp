@@ -24,16 +24,10 @@ using json = nlohmann::json;
 
 #include "loader.h"
 
+#include "engine_constants.h"
+
 int WINDOW_WIDTH = 1200;
 int WINDOW_HEIGHT = 900;
-
-float PI = 3.14159265359f;
-
-#define NUM_LIGHTS_PER_PRIMITIVE 10
-
-// this can be large because shadows are just stored as single ints
-// !! has to be synchronized with the definitionin common.glsl !!
-#define NUM_SHADOWS_PER_PRIMITIVE 10
 
 float aspect_ratio = (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT;
 bool should_update_aspect_ratio = true; // optimization to avoid updating aspect ratio every frame
@@ -145,29 +139,35 @@ void draw_ui() {
         ImGui::Spacing();
 	}
 
-    ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
-    ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
+    if (ImGui::CollapsingHeader("Camera")) {
+        ImGui::SliderFloat("slider updown", &updown, -5.0f, 5.0f);
+        ImGui::SliderFloat("slider FOV", &FOV, 1.0f, 180.0f);
 
-	ImGui::Spacing();
+        ImGui::Spacing();
+    }
 
-	// Convolution
-	ImGui::Text("Convolution options");
-	ImGui::SliderInt("Samples", &convolution_samples, 2, 10);
-	ImGui::SliderFloat("Distance mult", &convolution_distance_mult, 0.0f, 1.0f);
-	ImGui::SliderFloat("Sample scale", &convolution_smaple_scale, 0.0f, 5.0f);
+    if (ImGui::CollapsingHeader("Convolution options")) {
+        ImGui::SliderInt("Samples", &convolution_samples, 2, 10);
+        ImGui::SliderFloat("Distance mult", &convolution_distance_mult, 0.0f, 1.0f);
+        ImGui::SliderFloat("Sample scale", &convolution_smaple_scale, 0.0f, 5.0f);
 
-	ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
+        ImGui::Spacing();
+    }
 
-	ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 85);
+    if (ImGui::CollapsingHeader("Test options")) {
+        ImGui::SliderFloat("Test brightness", &test_brightness, 0.0f, 1.0f);
 
-	ImGui::Spacing();
-    ImGui::Text("Light options");
+        ImGui::SliderInt("Shadow test max", &shadow_test_max, 0, 85);
 
-	ImGui::ColorEdit3("Test light color", (float*)&test_light_col);
+		ImGui::Spacing();
+    }
 
-	ImGui::SliderFloat("Min light intensity", &light_min_intensity, 0.0f, 1.0f);
-	ImGui::SliderFloat("Max light distance", &max_light_distance, 0.0f, 30.0f);
+    if (ImGui::CollapsingHeader("Light options")) {
+        ImGui::ColorEdit3("Test light color", (float*)&test_light_col);
 
+        ImGui::SliderFloat("Min light intensity", &light_min_intensity, 0.0f, 1.0f);
+        ImGui::SliderFloat("Max light distance", &max_light_distance, 0.0f, 30.0f);
+    }
 
 #pragma endregion
     // End
@@ -312,6 +312,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     std::vector<std::string> shader_includes = {
+        "engine_constants.h",
         "shaders/common.glsl"
     };
 
