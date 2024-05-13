@@ -29,7 +29,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::vector<std
         fragmentCode = fShaderStream.str();
 
         // read includes
-        for (int i = 0; i < includes.size(); i++)
+        for (int i = includes.size() - 1; i >= 0; i--)
         {
             std::string include = includes[i];
             std::ifstream includeFile;
@@ -43,6 +43,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::vector<std
 
                 // append include code to the start of the shader code
                 fragmentCode = includeStream.str() + fragmentCode;
+                fragmentCode = "\n\n#line 1 \"" + include + "\"\n" + fragmentCode;
             }
             catch (std::ifstream::failure& e)
             {
@@ -68,18 +69,30 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::vector<std
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
-    checkCompileErrors(vertex, "VERTEX", vertexPath);
+    int shaderErrorCode = checkCompileErrors(vertex, "VERTEX", vertexPath);
+	if (shaderErrorCode != 0)
+	{
+		exit(shaderErrorCode);
+	}
     // fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
-    checkCompileErrors(fragment, "FRAGMENT", fragmentPath);
+    shaderErrorCode = checkCompileErrors(fragment, "FRAGMENT", fragmentPath);
+    if (shaderErrorCode != 0)
+    {
+        exit(shaderErrorCode);
+    }
     // shader Program
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
     glLinkProgram(ID);
-    checkCompileErrors(ID, "PROGRAM", vertexPath + std::string(", ") + fragmentPath);
+    shaderErrorCode = checkCompileErrors(ID, "PROGRAM", vertexPath + std::string(", ") + fragmentPath);
+	if (shaderErrorCode != 0)
+	{
+		exit(shaderErrorCode);
+	}
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -107,7 +120,7 @@ void Shader::setFloat(const std::string& name, float value) const
 
 // utility function for checking shader compilation/linking errors.
 // ------------------------------------------------------------------------
-void Shader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
+int Shader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
 {
     int success;
     char infoLog[1024];
@@ -120,6 +133,7 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type, std::stri
             std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n";
             std::cout << "Filename: " << filename << "\n\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            return 1;
         }
     }
     else
@@ -131,6 +145,9 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type, std::stri
             std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n";
             std::cout << "Filename: " << filename << "\n\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			return 2;
         }
     }
+
+	return 0;
 }

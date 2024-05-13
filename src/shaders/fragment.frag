@@ -1,6 +1,5 @@
 // !! do not define version in shader the compiler does it for us !!
 // This file includes common.glsl during compilation
-#line 4
 
 out vec4 FragColor;
 

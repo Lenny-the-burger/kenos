@@ -1,6 +1,5 @@
 // !! do not specify version in the shader this is done by the compiler !!
 // This file includes common.glsl during compilation
-#line 4
 
 layout(local_size_x = 64) in;
 

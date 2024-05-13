@@ -22,7 +22,7 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
         shaderCode = cShaderStream.str();
 
         // read includes
-        for (int i = 0; i < includes.size(); i++)
+        for (int i = includes.size() - 1; i >= 0; i--)
 		{
 			std::string include = includes[i];
 			std::ifstream includeFile;
@@ -36,6 +36,7 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
 				
                 // append include code to the start of the shader code
                 shaderCode = includeStream.str() + shaderCode;
+				shaderCode = "\n\n#line 1 \"" + include + "\"\n" + shaderCode;
 			}
 			catch (std::ifstream::failure& e)
 			{
@@ -45,7 +46,7 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
 		}
 
         // Prepend version
-        std::string versionString = "#version " + std::to_string(version) + "\n\n";
+        std::string versionString = "#version " + std::to_string(version) + "\n";
         shaderCode = versionString + shaderCode;
 
     }
@@ -61,12 +62,18 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
     compute = glCreateShader(GL_COMPUTE_SHADER);
     glShaderSource(compute, 1, &cShaderCode, NULL);
     glCompileShader(compute);
-	checkCompileErrors(compute, "COMPUTE", shaderPath);
+	int shaderErrorCode = checkCompileErrors(compute, "COMPUTE", shaderPath);
+    if (shaderErrorCode != 0) {
+        exit(shaderErrorCode);
+    }
     // shader Program
     ID = glCreateProgram();
     glAttachShader(ID, compute);
     glLinkProgram(ID);
-    checkCompileErrors(ID, "PROGRAM", shaderPath);
+    shaderErrorCode = checkCompileErrors(ID, "PROGRAM", shaderPath);
+	if (shaderErrorCode != 0) {
+		exit(shaderErrorCode);
+	}
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(compute);
 }
@@ -93,7 +100,7 @@ void ComputeShader::setFloat(const std::string& name, float value) const
 
 // utility function for checking shader compilation/linking errors.
 // ------------------------------------------------------------------------
-void ComputeShader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
+int ComputeShader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
 {
     int success;
     char infoLog[1024];
@@ -106,6 +113,7 @@ void ComputeShader::checkCompileErrors(unsigned int shader, std::string type, st
             std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n";
 			std::cout << "Filename: " << filename << "\n\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			return 1;
         }
     }
     else
@@ -117,6 +125,9 @@ void ComputeShader::checkCompileErrors(unsigned int shader, std::string type, st
             std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n";
             std::cout << "Filename: " << filename << "\n\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            return 2;
         }
     }
+
+	return 0;
 }
