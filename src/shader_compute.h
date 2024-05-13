@@ -29,7 +29,8 @@ public:
 
 private:
     // utility function for checking shader compilation/linking errors.
-	int checkCompileErrors(unsigned int shader, std::string type, std::string filename);
+    int checkCompileErrors(unsigned int shader, std::string type,
+        std::string filename, std::vector<std::string> includes);
 
 };
 

@@ -69,7 +69,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::vector<std
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
-    int shaderErrorCode = checkCompileErrors(vertex, "VERTEX", vertexPath);
+    int shaderErrorCode = checkCompileErrors(vertex, "VERTEX", vertexPath, includes);
 	if (shaderErrorCode != 0)
 	{
 		exit(shaderErrorCode);
@@ -78,7 +78,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::vector<std
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
-    shaderErrorCode = checkCompileErrors(fragment, "FRAGMENT", fragmentPath);
+    shaderErrorCode = checkCompileErrors(fragment, "FRAGMENT", fragmentPath, includes);
     if (shaderErrorCode != 0)
     {
         exit(shaderErrorCode);
@@ -88,7 +88,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::vector<std
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
     glLinkProgram(ID);
-    shaderErrorCode = checkCompileErrors(ID, "PROGRAM", vertexPath + std::string(", ") + fragmentPath);
+    shaderErrorCode = checkCompileErrors(ID, "PROGRAM", vertexPath + std::string(", ") + fragmentPath, includes);
 	if (shaderErrorCode != 0)
 	{
 		exit(shaderErrorCode);
@@ -120,7 +120,8 @@ void Shader::setFloat(const std::string& name, float value) const
 
 // utility function for checking shader compilation/linking errors.
 // ------------------------------------------------------------------------
-int Shader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
+int Shader::checkCompileErrors(unsigned int shader, std::string type, 
+        std::string filename, std::vector<std::string> includes)
 {
     int success;
     char infoLog[1024];
@@ -130,8 +131,14 @@ int Shader::checkCompileErrors(unsigned int shader, std::string type, std::strin
         if (!success)
         {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n";
-            std::cout << "Filename: " << filename << "\n\n";
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n\n";
+            std::cout << "FILENAME: " << filename << "\n";
+            std::cout << "INCLUDES:" << "\n";
+			for (int i = 0; i < includes.size(); i++)
+			{
+				std::cout << " + " << includes[i] << "\n";
+			}
+			std::cout << "\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
             return 1;
         }
@@ -145,9 +152,9 @@ int Shader::checkCompileErrors(unsigned int shader, std::string type, std::strin
             std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n";
             std::cout << "Filename: " << filename << "\n\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-			return 2;
+            return 2;
         }
     }
 
-	return 0;
+    return 0;
 }

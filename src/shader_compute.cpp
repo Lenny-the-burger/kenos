@@ -62,7 +62,7 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
     compute = glCreateShader(GL_COMPUTE_SHADER);
     glShaderSource(compute, 1, &cShaderCode, NULL);
     glCompileShader(compute);
-	int shaderErrorCode = checkCompileErrors(compute, "COMPUTE", shaderPath);
+	int shaderErrorCode = checkCompileErrors(compute, "COMPUTE", shaderPath, includes);
     if (shaderErrorCode != 0) {
         exit(shaderErrorCode);
     }
@@ -70,7 +70,7 @@ ComputeShader::ComputeShader(const char* shaderPath, std::vector<std::string> in
     ID = glCreateProgram();
     glAttachShader(ID, compute);
     glLinkProgram(ID);
-    shaderErrorCode = checkCompileErrors(ID, "PROGRAM", shaderPath);
+    shaderErrorCode = checkCompileErrors(ID, "PROGRAM", shaderPath, includes);
 	if (shaderErrorCode != 0) {
 		exit(shaderErrorCode);
 	}
@@ -100,7 +100,8 @@ void ComputeShader::setFloat(const std::string& name, float value) const
 
 // utility function for checking shader compilation/linking errors.
 // ------------------------------------------------------------------------
-int ComputeShader::checkCompileErrors(unsigned int shader, std::string type, std::string filename)
+int ComputeShader::checkCompileErrors(unsigned int shader, std::string type,
+    std::string filename, std::vector<std::string> includes)
 {
     int success;
     char infoLog[1024];
@@ -110,10 +111,16 @@ int ComputeShader::checkCompileErrors(unsigned int shader, std::string type, std
         if (!success)
         {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n";
-			std::cout << "Filename: " << filename << "\n\n";
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n\n";
+            std::cout << "FILENAME: " << filename << "\n";
+            std::cout << "INCLUDES:" << "\n";
+            for (int i = 0; i < includes.size(); i++)
+            {
+                std::cout << " + " << includes[i] << "\n";
+            }
+            std::cout << "\n";
             std::cout << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-			return 1;
+            return 1;
         }
     }
     else
@@ -129,5 +136,5 @@ int ComputeShader::checkCompileErrors(unsigned int shader, std::string type, std
         }
     }
 
-	return 0;
+    return 0;
 }
