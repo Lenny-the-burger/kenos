@@ -57,6 +57,7 @@ void main()
 
 		// also add the previous distance in the future
 		float probability = convolve(worldPos, c_prim, cur_light.prevDist);
+		probability *= cur_light.thisIntensity;
 
 		light_col += mat_col * cur_light.tint * test_emit_col * probability;
 	}

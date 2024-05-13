@@ -50,6 +50,10 @@ void main() {
 
         Triangle c_prim = get_primitive(c_primitiveID);
 
+//        if (pow(distance(r_prim.mean, c_prim.mean), 2) >= max_light_distance) {
+//            continue;
+//        }
+
         // we have identified a potential caster now make sure that we are
         // not behind it. We cannot just throw out casters if we are facing the same way because
         // some part of it might still be visible
@@ -74,6 +78,10 @@ void main() {
         newLight.bounce = 0;
 
         newLight.ogCaster = c_primitiveID; // we are the original caster
+
+        // How big are we from the perspective of the caster
+        newLight.thisIntensity = 1.0; // 1.0 here since we are bounce 0
+        newLight.prevIntensity = clamp(solid_angle(c_prim.mean, r_prim) / (2 * PI), 0, 1);;
 
         int nextIdx = int(gl_GlobalInvocationID.x) * NUM_LIGHTS_PER_PRIMITIVE;
         nextIdx += r_lightmap.numLights;

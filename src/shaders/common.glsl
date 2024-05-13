@@ -14,6 +14,9 @@ uniform float debug_grid_size_uniform;
 uniform int KS_NUM_PRIMITIVES;
 uniform int KS_NUM_LOD_PRIMITIVES;
 
+uniform float light_min_intensity;
+uniform float max_light_distance;
+
 // !! has to be synchronized with the definitionin common.glsl !!
 #define NUM_LIGHTS_PER_PRIMITIVE 10
 
@@ -34,7 +37,10 @@ struct Light {
 	int ogCaster;
 	int bounce;
 
-    int padding;
+    float thisIntensity;
+	float prevIntensity;
+
+	float padding[3];
 };
 
 // Define the layout of the Material struct

@@ -36,7 +36,7 @@ void main() {
     Material r_mat = material_buffer[r_primitiveID];
     
     
-    for (int c_primitiveID = 0; c_primitiveID <= KS_NUM_PRIMITIVES; c_primitiveID++) {
+    for (int c_primitiveID = KS_NUM_PRIMITIVES; c_primitiveID >= 0; c_primitiveID--) {
         if (c_primitiveID == r_primitiveID) {
 			continue;
 		}
@@ -76,11 +76,28 @@ void main() {
                 continue;
             }
 
+            // discard unimportant lights
+            if (c_light.prevIntensity < light_min_intensity) {
+                continue;
+            }
+
+            if (c_light.prevDist + pow(distance(r_prim.mean, c_prim.mean), 2) >= max_light_distance) {
+                continue;
+            }
+
             Material c_mat = material_buffer[c_primitiveID];
 
             Light newLight;
-            newLight.casterIndex = c_lightIdx;
+            newLight.casterIndex = c_primitiveID;
             newLight.bounce = KS_CUR_BOUNCE;
+            // How big are we from the perspective of the caster
+
+            // the solid angle of the reciever only matters when the reciever becomes the caster
+            // in the next light bounce.
+            newLight.thisIntensity = c_light.prevIntensity;
+
+            newLight.prevIntensity = clamp(solid_angle(c_prim.mean, r_prim) / (2 * PI), 0, 1);
+            newLight.prevIntensity *= c_light.prevIntensity; // intensity loss compounds
 
             // I should migrate colour to be a vec3
             vec3 c_mat_col = vec3(c_mat.color_r, c_mat.color_g, c_mat.color_b);
