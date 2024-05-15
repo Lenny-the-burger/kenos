@@ -1,3 +1,4 @@
 ## List of bugs or other things that should get fixed at some point but arent that important probably
 - For some reason, ``compute_frame_seq.comp`` doesn't like ``openface_box.obj`` and doesn't put any lights on the ceiling. Disablind the isbehind check, or rotating the mesh pi rads around the z axis fixes it.
 - Currently "special" or per-primitive materials in the scene files only apply to the regular mesh, and do not interact with the lod mesh at all, ideally we should have total parity beteween the two. Currently this isnt a problem, but may be in the future.
+- Placing the definition of PI into ``engine_constants.h`` causes the c++ side to not compile due to "redifinition". Where it is redifined is unkown. It has been moved to ``main.cpp`` and ``common.hlsl`` for now.

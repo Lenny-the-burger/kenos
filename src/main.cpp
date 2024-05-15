@@ -26,6 +26,8 @@ using json = nlohmann::json;
 
 #include "engine_constants.h"
 
+float PI = 3.14159265359f;
+
 int WINDOW_WIDTH = 1200;
 int WINDOW_HEIGHT = 900;
 

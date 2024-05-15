@@ -2,7 +2,8 @@
 // This file is included in all shaders that need it
 // !! do not specify version in the shader this is done by the compiler !!
 
-// ========================= ENGINE CONTANTS =========================
+// ========================= GLOBAL CONTANTS =========================
+float PI = 3.14159265359f;
 
 uniform float debug_grid_size_uniform;
 
