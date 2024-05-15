@@ -12,7 +12,7 @@ void Loader::load_scene(const std::string& filepath)
 	/*
 	* 1. Read scene file
 	* 2. Fill out the scene info struct
-	* 3. Fill out the material structs
+	* 3. Load materials
 	* 4. Load meshes
 	* 5. Read and construct scene objects
 	* 6. Contruct the monobuffer
@@ -41,7 +41,12 @@ void Loader::load_scene(const std::string& filepath)
 	scene_info.camera_lookat = glm::vec3(data["camera"]["lookat"][0], data["camera"]["lookat"][1], data["camera"]["lookat"][2]);
 	scene_info.camera_fov = data["camera"]["fov"];
 
-	// 3. Fill out the material structs
+	// 3. Load materials
+	// Set of primitives that have a unique material overriding the object material
+	// Lets us search it in logn time
+	std::set<int> has_unique_materials;
+	std::map<int, int> special_primitive_to_material;
+
 	for (auto& material : data["materials"]) {
 		Material mat = Material();
 		mat.emissive_strength = material["emissiveIntensity"];
@@ -54,6 +59,14 @@ void Loader::load_scene(const std::string& filepath)
 
 		// update the material name to index map
 		material_name_to_index[material["name"]] = loaded_materials.size() - 1;
+	}
+
+	for (auto& specMat : data["primMaterials"]) {
+		int primId = specMat["id"];
+		int matId = material_name_to_index[specMat["material"]];
+
+		has_unique_materials.insert(primId);
+		special_primitive_to_material[primId] = matId;
 	}
 
 	// 4. Load meshes
@@ -208,6 +221,14 @@ void Loader::load_scene(const std::string& filepath)
 		num_vertices  = temp_vertices.size();
 		num_indices = temp_indices.size();
 		num_materials = temp_materials.size();
+	}
+
+	// Insert special materials
+	for (int primId : has_unique_materials) {
+		// find the material index
+		int matId = special_primitive_to_material[primId];
+
+		temp_materials[primId] = loaded_materials[matId];
 	}
 
 	// Multiply verts and indxs by 3 since we store them as vec3 and ivec3

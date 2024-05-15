@@ -1,7 +1,12 @@
 {
   "sceneName": "Cornell box",
   "sceneDescription": "A Cornell box with a monke and a light",
-  "meshes": [ "assets/monke.obj", "assets/plane.obj", "assets/monke_lod.obj" ],
+  "meshes": [
+    "assets/monke.obj",
+    "assets/plane.obj",
+    "assets/monke_lod.obj",
+    "assets/openface_box.obj"
+  ],
   "materials": [
     {
       "name": "glossy",
@@ -40,6 +45,24 @@
       "roughness": 1
     }
   ],
+  "primMaterials": [
+    {
+      "id": 976,
+      "material": "diffuseRed"
+    },
+    {
+      "id": 971,
+      "material": "diffuseRed"
+    },
+    {
+      "id": 974,
+      "material": "diffuseGreen"
+    },
+    {
+      "id": 969,
+      "material": "diffuseGreen"
+    }
+  ],
   "objects": [
     {
       "name": "monke",
@@ -55,43 +78,11 @@
       "lodRotation": [ 0, 0, 0 ]
     },
     {
-      "name": "floor",
-      "mesh": "assets/plane.obj",
+      "name": "box",
+      "mesh": "assets/openface_box.obj",
       "material": "diffuseWhite",
-      "position": [ 0, -1, 0 ],
-      "rotation": [ 3.1415, 0, 0 ],
-      "scale": [ 2, 2, 2 ]
-    },
-    {
-      "name": "ceiling",
-      "mesh": "assets/plane.obj",
-      "material": "diffuseWhite",
-      "position": [ 0, 3, 0 ],
-      "rotation": [ 0, 0, 0 ],
-      "scale": [ 2, 2, 2 ]
-    },
-    {
-      "name": "backboard",
-      "mesh": "assets/plane.obj",
-      "material": "diffuseWhite",
-      "position": [ 0, 1, -2 ],
-      "rotation": [ 1.5707, 0, 0 ],
-      "scale": [ 2, 2, 2 ]
-    },
-    {
-      "name": "leftWall",
-      "mesh": "assets/plane.obj",
-      "material": "diffuseRed",
-      "position": [ 2, 1, 0 ],
-      "rotation": [ 3.1415, 0, -1.5707 ],
-      "scale": [ 2, 2, 2 ]
-    },
-    {
-      "name": "rightWall",
-      "mesh": "assets/plane.obj",
-      "material": "diffuseGreen",
-      "position": [ -2, 1, 0 ],
-      "rotation": [ 3.1415, 0, 1.5707 ],
+      "position": [ 0, 1, 0 ],
+      "rotation": [ 0, 0, 3.14159 ],
       "scale": [ 2, 2, 2 ]
     },
     {
