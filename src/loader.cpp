@@ -16,6 +16,8 @@ void Loader::load_scene(const std::string& filepath)
 	* 4. Load meshes
 	* 5. Read and construct scene objects
 	* 6. Contruct the monobuffer
+	* 7. now do the same thing but for the lod meshes
+	* 8. Compute adjacency information
 	*/
 
 	// 1. Read scene file
@@ -331,4 +333,7 @@ void Loader::load_scene(const std::string& filepath)
 		all_lod_materials[i] = temp_lod_materials[i];
 	}
 
+	// 8. Compute adjacency information
+	// This should probably be a seperate function but i dont want to make more pointless private
+	// variables that we use once and then forget about
 }

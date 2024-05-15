@@ -20,6 +20,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "engine_constants.h"
+
+#include <vector>
+#include <map>
+#include <set>
+
 // !! Remember to use the constructor and destructor to free memory !!
 struct Mesh {
 	std::string name;
@@ -105,6 +111,12 @@ public:
 
 	int get_num_lod_primitives() { return num_lod_materials; } // one material per primitive
 
+
+
+	// Get the adj information
+	int* get_adj_information() { return adj_information_final; }
+	int get_num_adj_information() { return num_adj_information; }
+
 private:
 	std::vector<Mesh> loaded_meshes;
 	std::vector<Material> loaded_materials;
@@ -140,4 +152,9 @@ private:
 
 	Material* all_lod_materials;
 	int num_lod_materials;
+
+	// Adj information
+
+	int* adj_information_final;
+	int num_adj_information;
 };
