@@ -107,6 +107,18 @@ layout(std430, binding = 7) buffer LODIndexBuffer {
 	int lod_indices[];
 };
 
+// ==== Adjacency information buffer ====
+
+layout(std430, binding = 8) buffer AdjacencyBuffer {
+	int adjacency_buffer[];
+};
+
+// ==== order of importance buffer ====
+
+layout(std430, binding = 9) buffer OrderBuffer {
+	int order_buffer[];
+};
+
 
 // ========================= FUNCTIONS =========================
 

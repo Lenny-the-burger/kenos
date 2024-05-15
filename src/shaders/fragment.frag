@@ -13,6 +13,8 @@ uniform int shadow_test_max;
 
 uniform vec3 test_emit_col; // for testing emissive surfaces
 
+uniform int show_only_this_bounce;
+
 void main()
 {
 	Triangle tri = get_primitive(gl_PrimitiveID);

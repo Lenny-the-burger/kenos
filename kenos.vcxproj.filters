@@ -64,6 +64,9 @@
     <None Include="src\assets\cornell_box.json">
       <Filter>Assets</Filter>
     </None>
+    <None Include="bugslol.md">
+      <Filter>Miscellaneous</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">

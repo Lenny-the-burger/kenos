@@ -138,6 +138,7 @@
   <ItemGroup>
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
+    <None Include="bugslol.md" />
     <None Include="kenos.cap" />
     <None Include="packages.config" />
     <None Include="README.md" />

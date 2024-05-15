@@ -323,6 +323,7 @@ int main() {
     ComputeShader compute_shader_frame_init("shaders/compute_frame_init.comp", shader_includes, 460);
 	ComputeShader compute_shader_frame_seq("shaders/compute_frame_seq.comp", shader_includes, 460);
 
+#pragma region BUFFERS
     /* WHAT EACH BUFFER IS USED FOR:
     * 0: Monolithic vertex buffer
     *  This buffer is indexed into by the index buffer and is equal to # of verices * 3 in the 
@@ -333,7 +334,7 @@ int main() {
     *  This buffer stores indeces into the vertex buffer. This buffer is bound normally as a EBO,
     *  but also as a SSBO to be acessible in later stages.
     * 
-    * 2: Material buffer
+    * 2: Monolithic material buffer
     *  This buffer stores material information for each primitive in the scene. This buffer is
     *  only written to once by the cpu and is then read by several stages. Stores all the information
     *  about the material of the primitive, such as color, reflectivity, etc. This should eventually be
@@ -363,6 +364,23 @@ int main() {
 	* 7: Lod index buffer
 	*    This buffer stores the index data for the lod mesh. This buffer is set up the same way as buffer
 	*    1, but is not bound as a EBO.
+    * 
+	* 8: Adjacency information buffer
+	*    This buffer stores the adjacency information for each primitive in the scene. This buffer is written
+    *    to only once at startup by the cpu (during scene load) and read by several other stages. This buffer 
+    *    only contains ints, and stores information in the following format:
+    * 
+	*       idx_offset = prim_id * (MAX_ADJACENT_PRIMITIVES + 1)
+	*       adj_buffer[idx_offset] = # of adjacent primitives
+	*       adj_buffer[idx_offset + [1...MAX_ADJACENT_PRIMITIVES + 1]] = index of adjacent primitive. This has
+	*           to be indexed in regard to how many adjacent primitives there are to avoid reading garbage data.
+    * 
+	* 9: Order of importance buffer
+	*    This buffer stores the order of importance for each primitive in the scene. This buffer is written
+	*    to only once at startup by the cpu (during scene load) and read by several other stages. This buffer
+    *    only contains ints, and stores the ids of primitives in order of importance. This buffer is usually
+	*    used when iterating over the entire scene to determine which primitives should have priority due to
+	*    limited memory.
     */
 
 
@@ -500,7 +518,35 @@ int main() {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, lod_indices_ssbo);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, lod_indices_ssbo);
 
+	// ==================== ADJACENCY BUFFER ====================
+
+	// TODO: adj gen isnt implemented yet, write an empty buffer for now
+
+	int num_adjacencies = scene_loader.get_num_primitives() * (MAX_ADJACENT_PRIMITIVES + 1);
+	int* adjacencies = nullptr;
+
+	unsigned int adjacencies_ssbo;
+	glGenBuffers(1, &adjacencies_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, adjacencies_ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int)* num_adjacencies, adjacencies, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, adjacencies_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, adjacencies_ssbo);
+
+	// ==================== ORDER OF IMPORTANCE BUFFER ====================
+
+	// TODO: order of importance isnt implemented yet, write an empty buffer for now
+
+	int num_order_of_importance = scene_loader.get_num_primitives();
+	int* order_of_importance = nullptr;
+
+	unsigned int order_of_importance_ssbo;
+	glGenBuffers(1, &order_of_importance_ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, order_of_importance_ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int)* num_order_of_importance, order_of_importance, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, order_of_importance_ssbo);
+
     // ==================== END BUFFERS SECTION ====================
+#pragma endregion
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
