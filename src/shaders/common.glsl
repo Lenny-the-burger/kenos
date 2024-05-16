@@ -228,9 +228,11 @@ float convolve(vec3 point, Triangle caster, float prevdist) {
 	int convolution_samples_side = convolution_samples - (convolution_samples/2);
 
 	// This should probably be in the loop
-	float frag_dist = convolution_distance_mult * plane_sdf(point, caster);
+	float frag_dist = plane_sdf(point, caster);
 
 	frag_dist = sqrt(pow(frag_dist, 2.0) + prevdist);
+
+	frag_dist *= convolution_distance_mult;
 
 	vec3 point_flat = project_onto_plane(point, caster);
 
