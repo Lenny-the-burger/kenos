@@ -18,6 +18,7 @@ void Loader::load_scene(const std::string& filepath)
 	* 6. Contruct the monobuffer
 	* 7. now do the same thing but for the lod meshes
 	* 8. Compute adjacency information
+	* 9. Compute the order of primitve importance
 	*/
 
 	// 1. Read scene file
@@ -336,4 +337,93 @@ void Loader::load_scene(const std::string& filepath)
 	// 8. Compute adjacency information
 	// This should probably be a seperate function but i dont want to make more pointless private
 	// variables that we use once and then forget about
+
+	// For now only compute the adjacency information for the regular mesh
+
+	// loop over every single tiangle, and then again for each triangle check if we hare a common vertex
+	// (at least one) and if we do, we have a common edge
+	// This is O(n^2) but whatever
+
+	// this is static so we dont need to count it
+	num_adj_information = num_materials * (MAX_ADJACENT_PRIMITIVES + 1);
+	adj_information = new int[num_adj_information];
+
+	for (int prim_x = 0; prim_x < num_materials; prim_x++) {
+		glm::ivec3 tri_x = temp_indices[prim_x];
+		int num_adj = 0;
+		for (int prim_y = 0; prim_y < num_materials; prim_y++) {
+			if (prim_x == prim_y) {
+				continue;
+			}
+
+			glm::ivec3 tri_y = temp_indices[prim_y];
+
+			// check if we have a common vertex
+			int common_vertices = 0;
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+					// because of texture coordinates, we can't just check if the vertices are the same
+					// we have to check if they are close enough
+					glm::vec3 v1 = temp_vertices[tri_x[i]];
+					glm::vec3 v2 = temp_vertices[tri_y[j]];
+					if (glm::distance(v1, v2) < EPSILON) {
+						common_vertices++; 
+					}
+				}
+			}
+
+			if (common_vertices >= MIN_SHARED_VERTICES) {
+				// Check if the normals are similar enough
+				glm::vec3 n1 = glm::cross(temp_vertices[tri_x[1]] - temp_vertices[tri_x[0]], temp_vertices[tri_x[2]] - temp_vertices[tri_x[0]]);
+				glm::vec3 n2 = glm::cross(temp_vertices[tri_y[1]] - temp_vertices[tri_y[0]], temp_vertices[tri_y[2]] - temp_vertices[tri_y[0]]);
+				n1 = glm::normalize(n1);
+				n2 = glm::normalize(n2);
+
+				float temp = glm::dot(n1, n2);
+
+				if (1.0f - glm::dot(n1, n2) <= MIN_NORMAL_DOT_DIFF) {
+					// we have a common edge
+					adj_information[prim_x * (MAX_ADJACENT_PRIMITIVES + 1) + num_adj + 1] = prim_y;
+					num_adj++;
+				}
+			}
+
+			if (num_adj >= MAX_ADJACENT_PRIMITIVES) {
+				break;
+			}
+		}
+
+		// set the number of adjacent primitives
+		adj_information[prim_x * (MAX_ADJACENT_PRIMITIVES + 1)] = num_adj;
+	}
+
+	// 9. Compute the order of primitve importance
+	// Since we have replaced the integral in the rendering equation with a definite sum, we can just use
+	// a look up table for 100% accurate importance sampling :))))
+
+	// For now just prepend the coloured primitves first, then just the rest of them in decreasing order
+	// (this is temporary only for this scene)
+
+	// we have to use vector because order matters :(
+	std::vector<int> ooi_temp;
+
+	for (int i: has_unique_materials) {
+		ooi_temp.push_back(i);
+	}
+
+	// add the rest of the triangles in reverse order
+	for (int i = num_materials; i >= 0; i--) {
+		if (has_unique_materials.find(i) != has_unique_materials.end()) {
+			continue;
+		}
+		ooi_temp.push_back(i);
+	}
+
+	// Convert to c array
+	num_ooi = ooi_temp.size();
+	ooi = new int[num_ooi];
+
+	for (int i = 0; i < ooi_temp.size(); i++) {
+		ooi[i] = ooi_temp[i];
+	}
 }

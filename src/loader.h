@@ -114,8 +114,12 @@ public:
 
 
 	// Get the adj information
-	int* get_adj_information() { return adj_information_final; }
+	int* get_adj_information() { return adj_information; }
 	int get_num_adj_information() { return num_adj_information; }
+
+	// Get order of importance array
+	int* get_ooi() { return ooi; }
+	int get_num_ooi() { return num_ooi; }
 
 private:
 	std::vector<Mesh> loaded_meshes;
@@ -155,6 +159,10 @@ private:
 
 	// Adj information
 
-	int* adj_information_final;
+	int* adj_information;
 	int num_adj_information;
+
+	// Order of importance array
+	int* ooi;
+	int num_ooi;
 };

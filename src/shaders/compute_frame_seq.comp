@@ -33,10 +33,49 @@ void main() {
 
     Triangle r_prim = get_primitive(r_primitiveID);
     Material r_mat = material_buffer[r_primitiveID];
+
+    // 971 976
+
+    // If we have adjacent primitives, we consider ourselves as part of a group and move our
+    // mean to be the mean of the group. This is only needed for the prevDist calculation.
+    vec3 lighting_mean;
+    int adj_idx_offset = r_primitiveID * (MAX_ADJACENT_PRIMITIVES + 1);
+
+    int num_adj_prims = adjacency_buffer[adj_idx_offset];
+
+    if (num_adj_prims == 0) {
+        lighting_mean = r_prim.mean;
+	} else {
+		lighting_mean = vec3(0.0);
+		for (int i = 0; i < num_adj_prims; i++) {
+			int adj_prim_idx = adjacency_buffer[adj_idx_offset + i + 1];
+			Triangle adj_prim = get_primitive(adj_prim_idx);
+			lighting_mean += adj_prim.mean;
+		}
+		lighting_mean += r_prim.mean;
+		lighting_mean /= float(num_adj_prims + 1);
+	}
+		
     
     
-    for (int c_primitiveID = KS_NUM_PRIMITIVES; c_primitiveID >= 0; c_primitiveID--) {
+    for (int loop_idx = 0; loop_idx < KS_NUM_PRIMITIVES; loop_idx++) {
+        // get what prim we should sample from importance buffer
+        int c_primitiveID = order_buffer[loop_idx];
+
         if (c_primitiveID == r_primitiveID) {
+			continue;
+		}
+
+        // Check if caster is adjacent, if so we can skip it
+        bool is_adjacent = false;
+        for (int i = 0; i < num_adj_prims; i++) {
+			int adj_prim_idx = adjacency_buffer[adj_idx_offset + i + 1];
+			if (adj_prim_idx == c_primitiveID) {
+				is_adjacent = true;
+				break;
+			}
+		}
+        if (is_adjacent) {
 			continue;
 		}
 
@@ -55,10 +94,11 @@ void main() {
         // some part of it might still be visible
         // occlusion will be implemeneted later.
 
-        // Has to be > 0 because i fucke dup
-        bool is0behind = plane_sdf(r_prim.v0, c_prim) < 0.0;
-        bool is1behind = plane_sdf(r_prim.v1, c_prim) < 0.0;
-        bool is2behind = plane_sdf(r_prim.v2, c_prim) < 0.0;
+        // Has to be < 0 because i fucke dup
+        // edit: not anymore ????
+        bool is0behind = plane_sdf(r_prim.v0, c_prim) > 0.0;
+        bool is1behind = plane_sdf(r_prim.v1, c_prim) > 0.0;
+        bool is2behind = plane_sdf(r_prim.v2, c_prim) > 0.0;
 
         if (is0behind && is1behind && is2behind) {
             continue;
@@ -103,7 +143,7 @@ void main() {
             newLight.tint = c_light.tint * c_mat_col;
 
             // Add previous distance for sequential convolution
-            newLight.prevDist = c_light.prevDist + pow(distance(r_prim.mean, c_prim.mean), 2);
+            newLight.prevDist = c_light.prevDist + pow(distance(lighting_mean, c_prim.mean), 2);
 
             newLight.ogCaster = c_light.ogCaster; // never changes
 

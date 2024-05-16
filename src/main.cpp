@@ -520,10 +520,8 @@ int main() {
 
 	// ==================== ADJACENCY BUFFER ====================
 
-	// TODO: adj gen isnt implemented yet, write an empty buffer for now
-
-	int num_adjacencies = scene_loader.get_num_primitives() * (MAX_ADJACENT_PRIMITIVES + 1);
-	int* adjacencies = nullptr;
+	int num_adjacencies = scene_loader.get_num_adj_information();
+	int* adjacencies = scene_loader.get_adj_information();
 
 	unsigned int adjacencies_ssbo;
 	glGenBuffers(1, &adjacencies_ssbo);
@@ -534,10 +532,8 @@ int main() {
 
 	// ==================== ORDER OF IMPORTANCE BUFFER ====================
 
-	// TODO: order of importance isnt implemented yet, write an empty buffer for now
-
-	int num_order_of_importance = scene_loader.get_num_primitives();
-	int* order_of_importance = nullptr;
+	int num_order_of_importance = scene_loader.get_num_ooi();
+	int* order_of_importance = scene_loader.get_ooi();
 
 	unsigned int order_of_importance_ssbo;
 	glGenBuffers(1, &order_of_importance_ssbo);
