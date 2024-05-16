@@ -37,7 +37,6 @@ void main()
 	Lightmap lm = lightmap_buffer[gl_PrimitiveID];
 
 	vec3 mat_col = vec3(mat.color_r, mat.color_g, mat.color_b);
-	//vec3 mat_col = lm.diffuseColor.xyz;
 
 	// Assuming depth value is in range [0, 1]
     float depth = gl_FragCoord.z - 0.9f; // Fetch depth from the built-in 
@@ -53,6 +52,10 @@ void main()
 		Light cur_light = lights_buffer[light_idx_offset + light_idx];
 		Triangle c_prim = get_primitive(cur_light.casterIndex);
 
+		if (show_only_this_bounce != -1 && cur_light.bounce != show_only_this_bounce) {
+			continue;
+		}
+
 		Material og_mat = material_buffer[cur_light.ogCaster]; // get the original material of the light
 		vec3 og_col = vec3(og_mat.color_r, og_mat.color_g, og_mat.color_b);
 
@@ -65,6 +68,9 @@ void main()
 
 	// fake shadows
 	vec3 light_dir = vec3(0, -1, 0);
+
+	// Matybe our colurs are off?
+	light_col = mix(test_emit_col, light_col, 0.5);
 
 	light_col *= test_brightness;
 	

@@ -42,9 +42,10 @@ std::string SCENE_FILE = "assets/cornell_box.json";
 static float updown = -0.2f;
 static float FOV = 45.0f;
 
-static int debug_id = 0;
+static int debug_id = -1;
 static int debug_id_max = 512;
 static float debug_grid_size = 0.05f;
+static int show_only_this_bounce = -1;
 
 static int convolution_samples = 4; // this should be multiple of 2
 static float convolution_distance_mult = 0.8f;
@@ -134,8 +135,9 @@ void draw_ui() {
 
     if (ImGui::CollapsingHeader("Debug")) {
 		ImGui::Text("Debugging options");
-        ImGui::SliderInt("Debug id", &debug_id, 0, debug_id_max);
+        ImGui::SliderInt("Debug id", &debug_id, -1, debug_id_max);
         ImGui::SliderFloat("Debug grid size", &debug_grid_size, 0.0f, 1.0f);
+		ImGui::SliderInt("Show only this bounce", &show_only_this_bounce, -1, 4);
 
         // spacing for better readability
         ImGui::Spacing();
@@ -150,7 +152,7 @@ void draw_ui() {
 
     if (ImGui::CollapsingHeader("Convolution options")) {
         ImGui::SliderInt("Samples", &convolution_samples, 2, 10);
-        ImGui::SliderFloat("Distance mult", &convolution_distance_mult, 0.0f, 1.0f);
+        ImGui::SliderFloat("Distance mult", &convolution_distance_mult, 0.0f, 3.0f);
         ImGui::SliderFloat("Sample scale", &convolution_smaple_scale, 0.0f, 5.0f);
 
         ImGui::Spacing();
@@ -256,6 +258,9 @@ void set_uniforms(unsigned int shader_id) {
 
 		unsigned int maxLightDistanceLoc = glGetUniformLocation(shader_id, "max_light_distance");
 		glUniform1f(maxLightDistanceLoc, max_light_distance);
+
+		unsigned int showOnlyThisBounceLoc = glGetUniformLocation(shader_id, "show_only_this_bounce");
+		glUniform1i(showOnlyThisBounceLoc, show_only_this_bounce);
     }
 }
 
