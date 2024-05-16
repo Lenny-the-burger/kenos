@@ -48,19 +48,19 @@
   "primMaterials": [
     {
       "id": 976,
-      "material": "diffuseRed"
+      "material": "diffuseGreen"
     },
     {
       "id": 971,
-      "material": "diffuseRed"
+      "material": "diffuseGreen"
     },
     {
       "id": 974,
-      "material": "diffuseGreen"
+      "material": "diffuseRed"
     },
     {
       "id": 969,
-      "material": "diffuseGreen"
+      "material": "diffuseRed"
     }
   ],
   "objects": [
